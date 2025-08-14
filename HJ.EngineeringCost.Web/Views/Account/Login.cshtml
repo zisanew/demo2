@@ -1,0 +1,82 @@
+﻿@{ Layout = null; }
+<!DOCTYPE html>
+<html lang="en" class="page-fill">
+<head>
+	<meta charset="UTF-8">
+	<title>登录</title>
+	<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
+	<link rel="stylesheet" href="~/Content/css/oksub.css" />
+</head>
+<body class="page-fill">
+	<div class="page-fill" id="login">
+		<form class="layui-form">
+			<div class="login_face"><img src="~/Content/images/logo.png"></div>
+			<div class="layui-form-item input-item">
+				<label for="username">用户名</label>
+				<input type="text" name="username" id="username" placeholder="请输入账号" lay-verify="required" autocomplete="off" class="layui-input">
+			</div>
+			<div class="layui-form-item input-item">
+				<label for="userpwd">密码</label>
+				<input type="password" name="userpwd" id="userpwd" placeholder="请输入密码" lay-verify="required|userpwd" autocomplete="off" class="layui-input">
+			</div>
+@* 			<div class="layui-form-item input-item captcha-box">
+				<label for="captcha">验证码</label>
+				<input type="text" name="captcha" id="captcha" placeholder="请输入验证码" lay-verify="required|captcha" autocomplete="off" class="layui-input" maxlength="4">
+				<div class="img ok-none-select"><img id="imgcode" style="width:100%;height:100%;" src="~/Account/GetAuthCode" alt="验证码" /></div>
+			</div> *@
+			<div class="layui-form-item">
+				<button class="layui-btn layui-block" lay-filter="login" lay-submit="">登录</button>
+			</div>
+		</form>
+	</div>
+</body>
+</html>
+<script src="~/Content/lib/layui/layui.js"></script>
+<script>
+	layui.use(["form", "okUtils", "okLayer"], function () {
+		let form = layui.form;
+		let $ = layui.jquery;
+		let okUtils = layui.okUtils;
+		let okLayer = layui.okLayer;
+
+		//清空SessionStorage
+		sessionStorage.clear();
+
+		//数据校验
+		form.verify({
+			userpwd: [/^[\S]{6,12}$/, "密码必须6到12位，且不能出现空格"]
+		});
+
+		//表单提交
+		form.on("submit(login)", function (data) {
+			okUtils.ajax("/Account/LoginOn", "post", { a: data.field.username, p: data.field.userpwd, captcha: data.field.captcha }, true).done(function (res) {
+				okLayer.greenTickMsg(res.Msg, function () {
+					window.location = "/Home/Index";
+				});
+			}).fail(function (error) {
+				//刷新二维码
+				$("#imgcode").click();
+			});
+			return false;
+		});
+
+		$("#imgcode").click(function () {
+			$("#imgcode").attr("src", "/Account/GetAuthCode?time=" + Math.random());
+		});
+
+		$("#login .input-item .layui-input").click(function (e) {
+			e.stopPropagation();
+			$(this).addClass("layui-input-focus").find(".layui-input").focus();
+		});
+
+		$("#login .layui-form-item .layui-input").focus(function () {
+			$(this).parent().addClass("layui-input-focus");
+		});
+
+		$("#login .layui-form-item .layui-input").blur(function () {
+			var parentItem = $(this).parent();
+			parentItem.removeClass("layui-input-focus");
+			$(this).val() != "" ? parentItem.addClass("layui-input-active") : parentItem.removeClass("layui-input-active");
+		});
+	});
+</script>

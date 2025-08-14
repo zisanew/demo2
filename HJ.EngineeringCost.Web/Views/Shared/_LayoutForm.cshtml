@@ -1,0 +1,40 @@
+﻿<!DOCTYPE html>
+<html>
+<head>
+    <meta name="viewport" content="width=device-width" />
+    <title>@ViewBag.Title</title>
+    <link href="~/lib/layui/css/layui.css" rel="stylesheet" />
+    <link href="~/css/common.css?v=@DateTime.Now.ToString("MM.ddhhmm")" rel="stylesheet" />
+    <script src="~/lib/layui/layui.js?v=@DateTime.Now.ToString("MM.ddhhmm")"></script>
+    <script src="~/js/global.js?v=@DateTime.Now.ToString("MM.ddhhmm")"></script>
+    <script src="~/js/jquery1.9.1.js"></script>
+    <style>
+        .layui-form-item {margin-bottom: 0px !important;}
+        .layui-disabled, .layui-disabled:hover {color: black !important;}
+    </style>
+</head>
+<body>
+    @Html.AntiForgeryToken()
+    <div class="ok-body">
+        @RenderBody()
+    </div>
+</body>
+</html>
+<script type="text/javascript">
+    layui.use(["okLayer"], function () {
+
+        //关闭弹窗
+        $("body").on("click", "#close", function () {
+            //先得到当前iframe层的索引 再执行关闭
+            parent.layer.close(parent.layer.getFrameIndex(window.name));
+        });
+    });
+
+    /**
+     * 关闭页面刷新父窗体
+     * */
+    function CloseWin() {
+        parent.location.reload(); // 父页面刷新
+        parent.layer.close(parent.layer.getFrameIndex(window.name));//先得到当前iframe层的索引 再执行关闭
+    }
+</script>

@@ -1,0 +1,16 @@
+{
+  "id": "1788382",
+  "name": "layui-icon-aldown",
+  "font_family": "iconfont",
+  "css_prefix_text": "icon-",
+  "description": "",
+  "glyphs": [
+    {
+      "icon_id": "14377341",
+      "name": "功能图标-120",
+      "font_class": "gongnengtubiao-120",
+      "unicode": "e6c9",
+      "unicode_decimal": 59081
+    }
+  ]
+}
