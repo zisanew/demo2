@@ -5,12 +5,9 @@
 	<title>@ViewBag.Title</title>
 	<link href="~/lib/layui/css/layui.css" rel="stylesheet" />
 	<link href="~/css/common.css?v=@DateTime.Now.ToString("MM.ddhhmm")" rel="stylesheet" />
-	<link href="~/css/jquery.contextMenu.min.css" rel="stylesheet" />
 	<script src="~/js/jquery1.9.1.js"></script>
 	<script src="~/lib/layui/layui.js?v=@DateTime.Now.ToString("MM.ddhhmm")"></script>
 	<script src="~/js/global.js?v=@DateTime.Now.ToString("MM.ddhhmm")"></script>
-	<script src="~/js/jquery.ui.position.min.js"></script>
-	<script src="~/js/jquery.contextMenu.min.js"></script>
 	<style>
 		#ajax-loader {cursor: progress; position: fixed; top: -50%; left: -50%; width: 200%; height: 200%; background: #fff; z-index: 10000; overflow: hidden;}
 		#ajax-loader img {position: absolute; top: 0; left: 0; right: 0; bottom: 0; margin: auto;}
@@ -39,23 +36,6 @@
 				}, 50);
 				return false;
 			});
-
-			//表单转Object
-			$.fn.serializeObject = function () {
-				var o = {};
-				var a = this.serializeArray();
-				$.each(a, function () {
-					if (o[this.name] !== undefined) {
-						if (!o[this.name].push) {
-							o[this.name] = [o[this.name]];
-						}
-						o[this.name].push(this.value || '');
-					} else {
-						o[this.name] = this.value || '';
-					}
-				});
-				return o;
-			};
 		});
 		
 		function searchHeight() {

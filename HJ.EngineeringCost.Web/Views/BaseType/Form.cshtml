@@ -1,0 +1,40 @@
+﻿@model HJ.EngineeringCost.Web.Models.BaseType
+@{
+    Layout = "~/Views/Shared/_LayoutForm.cshtml";
+    var url = Model?.Id == null ? "/api/BaseType/Create" : "/api/BaseType/Update";
+}
+<form class="layui-form layui-form-pane ok-form" lay-filter="formSave">
+    <input type="hidden" name="Id" value="@Model?.Id" />
+    <div class="layui-form-item">
+        <div class="pl-form-line">
+            <label class="layui-form-label xrequired">类型名称</label>
+            <div class="pl-form-input-block">
+                <input name="TypeName" value="@Model?.TypeName" class="layui-input" type="text" placeholder="请输入类型名称" autocomplete="off" lay-verify="required" />
+            </div>
+        </div>
+    </div>
+    <div class="fixed-buttons">
+        <button class="layui-btn layui-btn-sm layui-btn-normal" lay-submit lay-filter="save">保存</button>
+        <button type="button" class="layui-btn layui-btn-sm layui-btn-primary" id="close">取消</button>
+    </div>
+</form>
+<script type="text/javascript">
+    layui.use(["form", "okLayer", "okUtils"], function () {
+        let form = layui.form;
+        let okLayer = layui.okLayer;
+        let okUtils = layui.okUtils;
+
+        form.on("submit(save)", function (data) {
+            const requestData = {
+                data: [data.field]
+            };
+
+            okUtils.ajax("@url", "post", requestData, true).done(function (res) {
+                okLayer.greenTickMsg(res.message, CloseWin);
+            }).fail(function (error) {
+                console.log(error);
+            });
+            return false;
+        });
+    });
+</script>

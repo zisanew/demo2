@@ -10,7 +10,7 @@ public class BasePageInput
     /// <summary>
     /// 每页记录数
     /// </summary>
-    public int PageSize { get; set; } = 50;
+    public int PageSize { get; set; } = 20;
 
     /// <summary>
     /// 排序

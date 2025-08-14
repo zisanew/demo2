@@ -1,4 +1,6 @@
 ﻿using FreeSql.DataAnnotations;
+using HJ.EngineeringCost.Web.Attributes;
+using System.ComponentModel.DataAnnotations;
 
 namespace HJ.EngineeringCost.Web.Models;
 
@@ -9,8 +11,10 @@ namespace HJ.EngineeringCost.Web.Models;
 public class ProjectType : EntityBase
 {
     /// <summary>
-    /// 类型名称
+    /// 项目名称
     /// </summary>
+    [Unique]
+    [Display(Name = "项目名称")]
     [Column(StringLength = 50)]
     public string TypeName { get; set; }
 }

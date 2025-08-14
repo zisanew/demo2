@@ -1,0 +1,118 @@
+﻿@model HJ.EngineeringCost.Web.Models.Materials
+@{
+    Layout = "~/Views/Shared/_LayoutForm.cshtml";
+    var url = Model?.Id == null ? "/api/Materials/Create" : "/api/Materials/Update";
+}
+<form class="layui-form layui-form-pane ok-form" lay-filter="formSave">
+    <input type="hidden" name="Id" value="@Model?.Id" />
+    <div class="layui-form-item">
+        <div class="pl-form-line">
+            <label class="layui-form-label xrequired">材料名称</label>
+            <div class="pl-form-input-block">
+                <input name="MaterialName" value="@Model?.MaterialName" class="layui-input" type="text" placeholder="请输入材料名称" autocomplete="off" lay-verify="required" />
+            </div>
+        </div>
+        <div class="pl-form-line">
+            <label class="layui-form-label xrequired">材料编码</label>
+            <div class="pl-form-input-block">
+                <input name="MaterialCode" value="@Model?.MaterialCode" class="layui-input" type="text" placeholder="请输入材料编码" autocomplete="off" lay-verify="required" />
+            </div>
+        </div>
+        <div class="pl-form-line">
+            <label class="layui-form-label xrequired">属性</label>
+            <div class="pl-form-input-block">
+                <input name="MaterialType" value="@Model?.MaterialType" class="layui-input" type="text" placeholder="请输入属性" autocomplete="off" lay-verify="required" />
+            </div>
+        </div>
+        <div class="pl-form-line">
+            <label class="layui-form-label xrequired">材质</label>
+            <div class="pl-form-input-block">
+                <input name="Quality" value="@Model?.Quality" class="layui-input" type="text" placeholder="请输入材质" autocomplete="off" lay-verify="required" />
+            </div>
+        </div>
+        <div class="pl-form-line">
+            <label class="layui-form-label xrequired">规格</label>
+            <div class="pl-form-input-block">
+                <input name="Spec" value="@Model?.Spec" class="layui-input" type="text" placeholder="请输入规格" autocomplete="off" lay-verify="required" />
+            </div>
+        </div>
+        <div class="pl-form-line">
+            <label class="layui-form-label xrequired">厂牌</label>
+            <div class="pl-form-input-block">
+                <input name="Brand" value="@Model?.Brand" class="layui-input" type="text" placeholder="请输入厂牌" autocomplete="off" lay-verify="required" />
+            </div>
+        </div>
+        <div class="pl-form-line">
+            <label class="layui-form-label xrequired">单位</label>
+            <div class="pl-form-input-block">
+                <input name="Unit" value="@Model?.Unit" class="layui-input" type="text" placeholder="请输入单位" autocomplete="off" lay-verify="required" />
+            </div>
+        </div>
+        <div class="pl-form-line">
+            <label class="layui-form-label xrequired">数量</label>
+            <div class="pl-form-input-block">
+                <input name="Qty" value="@Model?.Qty" class="layui-input" type="text" placeholder="请输入数量" autocomplete="off" lay-verify="required" />
+            </div>
+        </div>
+        <div class="pl-form-line">
+            <label class="layui-form-label xrequired">材料单价</label>
+            <div class="pl-form-input-block">
+                <input name="Price" value="@Model?.Price" class="layui-input" type="text" placeholder="请输入材料单价" autocomplete="off" lay-verify="required" />
+            </div>
+        </div>
+        <div class="pl-form-line">
+            <label class="layui-form-label xrequired">工资单价</label>
+            <div class="pl-form-input-block">
+                <input name="WagesPrice" value="@Model?.WagesPrice" class="layui-input" type="text" placeholder="请输入工资单价" autocomplete="off" lay-verify="required" />
+            </div>
+        </div>
+        <div class="pl-form-line">
+            <label class="layui-form-label">总价</label>
+            <div class="pl-form-input-block">
+                <input name="TotalPrice" class="layui-input" type="text" placeholder="请输入总价" autocomplete="off" />
+            </div>
+        </div>
+        <div class="pl-form-line">
+            <label class="layui-form-label">供应商</label>
+            <div class="pl-form-input-block">
+                <input name="Supplier" value="@Model?.Supplier" class="layui-input" type="text" placeholder="请输入供应商" autocomplete="off" />
+            </div>
+        </div>
+        <div class="pl-form-line">
+            <label class="layui-form-label">联系电话</label>
+            <div class="pl-form-input-block">
+                <input name="ContactPhone" value="@Model?.ContactPhone" class="layui-input" type="text" placeholder="请输入联系电话" autocomplete="off" />
+            </div>
+        </div>
+        <div class="pl-form-line">
+            <label class="layui-form-label">备注</label>
+            <div class="pl-form-input-block">
+                <input name="Remark" value="@Model?.Remark" class="layui-input" type="text" placeholder="请输入备注" autocomplete="off" />
+            </div>
+        </div>
+    </div>
+    <div class="fixed-buttons">
+        <button class="layui-btn layui-btn-sm layui-btn-normal" lay-submit lay-filter="save">保存</button>
+        <button type="button" class="layui-btn layui-btn-sm layui-btn-primary" id="close">取消</button>
+    </div>
+</form>
+<script type="text/javascript">
+    layui.use(["form", "okLayer", "okUtils"], function () {
+        let form = layui.form;
+        let okLayer = layui.okLayer;
+        let okUtils = layui.okUtils;
+
+        form.on("submit(save)", function (data) {
+            const requestData = {
+                data: [data.field]
+            };
+
+            okUtils.ajax("@url", "post", requestData, true).done(function (res) {
+                okLayer.greenTickMsg(res.message, CloseWin);
+            }).fail(function (error) {
+                console.log(error);
+            });
+            return false;
+        });
+    });
+</script>

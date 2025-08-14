@@ -38,20 +38,12 @@ public class LoginFilter : IAsyncAuthorizationFilter
         if (IsAjaxRequest(context.HttpContext.Request))
         {
             // 处理 AJAX 请求
-            context.Result = new JsonResult(new
-            {
-                Code = 100500,
-                Message = "登录信息已失效，请登录后操作！",
-            });
+            context.Result = new JsonResult(new { Code = 401, Message = "登录信息已失效，请登录后操作！", });
         }
         else
         {
-            // 处理普通请求，重定向到登录页面
-            context.Result = new ContentResult
-            {
-                Content = "<script>top.location.href = '/MiniAuth/logout';</script>",
-                ContentType = "text/html"
-            };
+            context.Result = new ContentResult { Content = "<script>top.location.href = '/Account/Login';</script>", ContentType = "text/html" };
+            //context.Result = new RedirectResult($"/Account/Login?returnUrl={context.HttpContext.Request.Path}");
         }
 
         await Task.CompletedTask;

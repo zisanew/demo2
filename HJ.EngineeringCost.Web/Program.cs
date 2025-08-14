@@ -1,5 +1,7 @@
 using FreeSql;
 using HJ.EngineeringCost.Web.Filter;
+using Mapster;
+using Microsoft.AspNetCore.Authentication.Cookies;
 using Serilog;
 using Serilog.Events;
 using System.Text.Json;
@@ -32,23 +34,36 @@ public class Program
             builder.Services.AddSingleton(CreateFreeSql(appConfig));
             builder.Services.AddSingleton(Log.Logger);
 
+            builder.Services.AddMapster();
+
             // 注册业务服务
             RegisterServices(builder.Services);
+
+            //builder.Services.AddAuthentication(CookieAuthenticationDefaults.AuthenticationScheme)
+            //    .AddCookie(options =>
+            //    {
+            //        options.Cookie.Name = "EngineeringCostAuth"; // Cookie名称
+            //        options.Cookie.HttpOnly = true;
+            //        options.LoginPath = "/Account/Login"; // 登录页地址
+            //        //options.AccessDeniedPath = "/Account/AccessDenied"; // 权限不足页地址
+            //        options.ExpireTimeSpan = TimeSpan.FromHours(2); // Cookie有效期
+            //    });
 
             // 添加MVC支持
             builder.Services.AddControllersWithViews(options =>
             {
-                options.Filters.Add<LoginFilter>();
+                //options.Filters.Add<LoginFilter>();
             })
-            .AddJsonOptions(options =>
-            {
-                options.JsonSerializerOptions.TypeInfoResolver = new DefaultJsonTypeInfoResolver();
-                options.JsonSerializerOptions.Converters.Add(new JsonStringEnumConverter());
-                options.JsonSerializerOptions.PropertyNamingPolicy = JsonNamingPolicy.CamelCase;
-                // 添加自定义转换器
-                options.JsonSerializerOptions.Converters.Add(new LongJsonConverter());
-                options.JsonSerializerOptions.Converters.Add(new DatetimeJsonConverter());
-            });
+                .AddJsonOptions(options =>
+
+                {
+                    options.JsonSerializerOptions.TypeInfoResolver = new DefaultJsonTypeInfoResolver();
+                    options.JsonSerializerOptions.Converters.Add(new JsonStringEnumConverter());
+                    options.JsonSerializerOptions.PropertyNamingPolicy = JsonNamingPolicy.CamelCase;
+                    // 添加自定义转换器
+                    options.JsonSerializerOptions.Converters.Add(new LongJsonConverter());
+                    options.JsonSerializerOptions.Converters.Add(new DatetimeJsonConverter());
+                });
 
             var app = builder.Build();
 

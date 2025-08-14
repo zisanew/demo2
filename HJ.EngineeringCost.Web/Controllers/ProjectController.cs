@@ -4,13 +4,13 @@ using Microsoft.AspNetCore.Mvc;
 namespace HJ.EngineeringCost.Web.Controllers;
 
 /// <summary>
-/// 项目类型
+/// 基础类型
 /// </summary>
 [AllowAnonymous]
 [Route("/api/[controller]/[action]")]
-public class ProjectTypeController : BaseController<ProjectType, ProjectTypeInput>
+public class ProjectController : BaseController<Project, ProjectInput>
 {
-    public ProjectTypeController(IServiceScopeFactory serviceScopeFactory)
+    public ProjectController(IServiceScopeFactory serviceScopeFactory)
         : base(serviceScopeFactory)
     {
     }
@@ -33,10 +33,13 @@ public class ProjectTypeController : BaseController<ProjectType, ProjectTypeInpu
     /// <returns></returns>
     [HttpGet]
     [Route("/api/[controller]")]
-    public async Task<IActionResult> GetListAsync([FromQuery] GetPageProjectTypeInput input)
+    public async Task<IActionResult> GetListAsync([FromQuery] GetPageProjectInput input)
     {
-        var list = await _fsql.Select<ProjectType>()
-            .WhereIf(input.TypeName != null, x => x.TypeName.Contains(input.TypeName))
+        var list = await _fsql.Select<Project>()
+            .WhereIf(input.ProjectName != null, x => x.ProjectName.Contains(input.ProjectName))
+            .WhereIf(input.Factory != null, x => x.Factory.Contains(input.Factory))
+            .WhereIf(input.StartDate != null, x => x.CreateTime <= input.StartDate)
+            .WhereIf(input.EndDate != null, x => x.CreateTime >= input.EndDate)
             .OrderBy(!string.IsNullOrEmpty(input.Sort), input.Sort)
             .Count(out var total)
             .Page(input.PageIndex, input.PageSize)
@@ -46,3 +49,4 @@ public class ProjectTypeController : BaseController<ProjectType, ProjectTypeInpu
         return Ok(result);
     }
 }
+

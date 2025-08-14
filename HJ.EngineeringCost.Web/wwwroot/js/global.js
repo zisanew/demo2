@@ -14,6 +14,23 @@
     return fmt;
 };
 
+//表单转Object
+$.fn.serializeObject = function () {
+    var o = {};
+    var a = this.serializeArray();
+    $.each(a, function () {
+        if (o[this.name] !== undefined) {
+            if (!o[this.name].push) {
+                o[this.name] = [o[this.name]];
+            }
+            o[this.name].push(this.value || '');
+        } else {
+            o[this.name] = this.value || '';
+        }
+    });
+    return o;
+};
+
 //显示图标
 function showIcon(icon) {
     return "<i class='ok-icon'>" + icon + "</i>";
@@ -68,108 +85,4 @@ function inputKeep2(obj) {
     obj.value = obj.value.replace(/\.{2,}/g, "."); //只保留第一个. 清除多余的
     obj.value = obj.value.replace(".", "$#$").replace(/\./g, "").replace("$#$", ".");
     obj.value = obj.value.replace(/^(\-)*(\d+)\.(\d\d).*$/, '$1$2.$3');//只能输入两个小数
-}
-
-function getModifiedFields(original, current) {
-    let modified = {};
-    for (let key in current) {
-        if (current.hasOwnProperty(key)) {
-            const originalValue = original[key];
-            const currentValue = current[key];
-
-            // 检查是否为 null 或 undefined
-            if (originalValue === null || originalValue === undefined || currentValue === null || currentValue === undefined) {
-                if (originalValue !== currentValue) {
-                    modified[key] = { original: originalValue, current: currentValue };
-                }
-            } else {
-                if (String(originalValue).trim() !== String(currentValue).trim()) {
-                    modified[key] = { original: originalValue, current: currentValue };
-                }
-            }
-        }
-    }
-    return modified;
-}
-
-function formatModifiedFields(modifiedFields) {
-    return Object.keys(modifiedFields).map(key => {
-        const inputElement = $(`input[name="${key}"]`);
-        const plFormLine = inputElement.closest('.pl-form-line');
-        const labelElement = plFormLine.find('.layui-form-label');
-        const label = labelElement.text().trim() || key;
-        return `<strong>${label}</strong>: ${modifiedFields[key].original} => ${modifiedFields[key].current}`;
-    }).join('<br>');
-}
-
-function getGuid() {
-    return 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, function (c) {
-        const r = (Math.random() * 16) | 0;
-        const v = c === 'x' ? r : (r & 0x3) | 0x8; // 确保 y 的值在 8-11 之间
-        return v.toString(16);
-    });
-}
-
-/**
- * 导出Excel
- * @param {any} layui
- * @param {any} url 数据接口
- * @param {any} where 条件
- * @param {any} method 方法
- * @param {any} colsItem 头部表头绑定列
- * @param {any} fieldArr 表头列【用于排序】
- * @param {any} filesign 文件标志
- */
-function LAYExportExcel(layui, url, where, method, colsItem, fieldArr, filesign) {
-	let excel = layui.excel;
-	let okLayer = layui.okLayer;
-	where.page = 1;
-	where.limit = 10001;//导出数据上限+1
-
-	$.ajax({
-		url: url,
-		type: method,
-		data: where,
-		success: function (res) {
-            if (res.total == 0) {
-				okLayer.yellowSighMsg("根据条件筛选后，没有可供导出的数据", null, 1500);
-				return false;
-			}
-            else if (res.total > 10000) {
-				layer.confirm('根据条件导出一次最多10000条数据，是否导出？', function (index) {
-					layer.close(index);
-					res.data.splice(10000, 1);//删除第10001条数据
-					doLAYExportExcel(excel, res.data, colsItem, fieldArr, filesign);
-				});
-			} else {
-				doLAYExportExcel(excel, res.data, colsItem, fieldArr, filesign);
-			}
-		},
-	});
-}
-
-function doLAYExportExcel(excel, data, colsItem, fieldArr, filesign) {
-	// 1.数组头部新增表头 { name: '名字', age: '年龄' }
-	data.unshift(colsItem);
-	// 2.数据格式自定义转换
-	let file = getFileInfo(filesign, data);
-	// 3.如果需要调整顺序，请执行梳理函数 ['name','age']
-	let sheetData = excel.filterExportData(file[1], fieldArr);
-	// 4.执行导出函数，系统会弹出弹框
-	excel.exportExcel({ sheet1: sheetData }, file[0].concat(".xlsx"), "xlsx");
-}
-
-function getFileInfo(filesign, data) {
-	let file = [];
-	switch (filesign) {
-        case "edi830":
-			file[0] = "EDI830";
-			file[1] = data;
-            break;
-        case "edi850":
-            file[0] = "EDI850";
-            file[1] = data;
-            break;
-	}
-	return file;
 }

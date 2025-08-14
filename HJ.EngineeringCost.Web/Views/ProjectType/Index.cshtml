@@ -1,5 +1,5 @@
 ﻿@{
-    ViewBag.Title = "基础类型";
+    ViewBag.Title = "项目类型";
     Layout = "~/Views/Shared/_LayoutList.cshtml";
 }
 <!--搜索区域-->
@@ -25,7 +25,7 @@
 
         let tableInit = table.render({
             elem: "#tableId",
-            url: "/api/BaseType",
+            url: "/api/ProjectType",
             limit: 10,
             height: "full-" + searchHeight(),
             page: true,
@@ -47,7 +47,7 @@
         table.on("toolbar(tableFilter)", function (obj) {
             switch (obj.event) {
                 case "btn-add":
-                    okLayer.open("新增基础类型", "/api/BaseType/Form", "50%", "50%", null, null);
+                    okLayer.open("新增项目类型", "/api/ProjectType/Form", "50%", "50%", null, null);
                     break;
 
                 case "btn-batchDel":
@@ -62,7 +62,7 @@
                     const requestData = { data: idArray };
 
                     okLayer.confirm("确定要删除吗？", function () {
-                        okUtils.ajax("/api/BaseType/Delete", "post", requestData, true).done(function (res) {
+                        okUtils.ajax("/api/ProjectType/Delete", "post", requestData, true).done(function (res) {
                             okUtils.tableSuccessMsg(res.message);
                         }).fail(function (error) {
                             console.log(error);
@@ -76,7 +76,7 @@
             let data = obj.data;
             switch (obj.event) {
                 case "btn-edit":
-                    okLayer.open("编辑基础类型", "/api/BaseType/Form?id=" + data.id, "50%", "50%", null, null);
+                    okLayer.open("编辑项目类型", "/api/ProjectType/Form?id=" + data.id, "50%", "50%", null, null);
                     break;
             }
         });

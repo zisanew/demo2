@@ -1,12 +1,15 @@
 ﻿@{
-    ViewBag.Title = "基础类型";
+    ViewBag.Title = "材料管理";
     Layout = "~/Views/Shared/_LayoutList.cshtml";
 }
 <!--搜索区域-->
 <div class="layui-row">
     <form class="layui-form layui-col-md12 ok-search">
         <div class="layui-input-inline">
-            <input class="layui-input" name="TypeName" placeholder="请输入类型名称" autocomplete="off">
+            <input class="layui-input" name="MaterialName" placeholder="请输入材料名称" autocomplete="off">
+        </div>
+        <div class="layui-input-inline">
+            <input class="layui-input" name="MaterialCode" placeholder="请输入材料编码" autocomplete="off">
         </div>
         <button class="layui-btn layui-btn-sm layui-btn-normal btn-search" lay-submit lay-filter="search">
             <i class='layui-icon'>&#xe615;</i>查询
@@ -25,7 +28,7 @@
 
         let tableInit = table.render({
             elem: "#tableId",
-            url: "/api/BaseType",
+            url: "/api/Materials",
             limit: 10,
             height: "full-" + searchHeight(),
             page: true,
@@ -35,7 +38,20 @@
             cols: [[
                 { type: "checkbox" },
                 { title: "操作", align: "center", templet: "#toolTpl", width: 65 },
-                { field: "typeName", title: "类型名称", sort: true }
+                { field: "materialName", title: "材料名称", sort: true },
+                { field: "materialCode", title: "材料编码", sort: true },
+                { field: "materialType", title: "属性", sort: true },
+                { field: "quality", title: "材质", sort: true },
+                { field: "spec", title: "规格", sort: true },
+                { field: "brand", title: "厂牌", sort: true },
+                { field: "unit", title: "单位", sort: true },
+                { field: "qty", title: "数量", sort: true },
+                { field: "price", title: "材料单价", sort: true },
+                { field: "wagesPrice", title: "工资单价", sort: true },
+                { field: "typeName", title: "总价", sort: true },
+                { field: "supplier", title: "供应商", sort: true },
+                { field: "contactPhone", title: "联系电话", sort: true },
+                { field: "remark", title: "备注", sort: true }
             ]],
             where: $("form").serializeObject(),
             request: {
@@ -47,7 +63,16 @@
         table.on("toolbar(tableFilter)", function (obj) {
             switch (obj.event) {
                 case "btn-add":
-                    okLayer.open("新增基础类型", "/api/BaseType/Form", "50%", "50%", null, null);
+                    okLayer.open("新增材料", "/api/Materials/Form", "80%", "80%", null, null);
+                    break;
+
+                 case "btn-dataCleaning":
+                    break;
+
+                 case "btn-downloadTemplet":
+                    break;
+
+                 case "btn-importExcel":
                     break;
 
                 case "btn-batchDel":
@@ -62,7 +87,7 @@
                     const requestData = { data: idArray };
 
                     okLayer.confirm("确定要删除吗？", function () {
-                        okUtils.ajax("/api/BaseType/Delete", "post", requestData, true).done(function (res) {
+                        okUtils.ajax("/api/Materials/Delete", "post", requestData, true).done(function (res) {
                             okUtils.tableSuccessMsg(res.message);
                         }).fail(function (error) {
                             console.log(error);
@@ -76,7 +101,7 @@
             let data = obj.data;
             switch (obj.event) {
                 case "btn-edit":
-                    okLayer.open("编辑基础类型", "/api/BaseType/Form?id=" + data.id, "50%", "50%", null, null);
+                    okLayer.open("编辑材料", "/api/Materials/Form?id=" + data.id, "80%", "80%", null, null);
                     break;
             }
         });
@@ -93,6 +118,9 @@
 <!-- 头工具栏模板 -->
 <script type="text/html" id="toolbarTpl">
     <button class="layui-btn layui-btn-xs layui-btn-normal" lay-event="btn-add">新增</button>
+    <button class="layui-btn layui-btn-xs layui-btn-normal" lay-event="btn-downloadTemplet">下载导入模板</button>
+    <button class="layui-btn layui-btn-xs layui-btn-normal" lay-event="btn-importExcel">导入数据</button>
+    <button class="layui-btn layui-btn-xs layui-btn-warm" lay-event="btn-dataCleaning">数据清洗</button>
     <button class="layui-btn layui-btn-xs layui-btn-normal" lay-event="btn-batchDel">批量删除</button>
 </script>
 <!-- 行工具栏模板 -->

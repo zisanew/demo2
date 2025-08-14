@@ -1,9 +1,11 @@
 ﻿using FreeSql.DataAnnotations;
+using HJ.EngineeringCost.Web.Attributes;
+using System.ComponentModel.DataAnnotations;
 
 namespace HJ.EngineeringCost.Web.Models;
 
-[Table(Name = "material")]
-public class Material : EntityBase
+[Table(Name = "materials")]
+public class Materials : EntityBase
 {
     /// <summary>
     /// 材料编号
@@ -14,6 +16,8 @@ public class Material : EntityBase
     /// <summary>
     /// 材料名称
     /// </summary>
+    [Unique]
+    [Display(Name = "材料名称")]
     [Column(StringLength = 255, IsNullable = false)]
     public string MaterialName { get; set; }
 
@@ -26,6 +30,8 @@ public class Material : EntityBase
     /// <summary>
     /// 材料规格
     /// </summary>
+    [Unique]
+    [Display(Name = "规格")]
     [Column(StringLength = 1000)]
     public string Spec { get; set; }
 
@@ -68,6 +74,8 @@ public class Material : EntityBase
     /// <summary>
     /// 品牌
     /// </summary>
+    [Unique]
+    [Display(Name = "品牌")]
     [Column(StringLength = 100)]
     public string Brand { get; set; }
 
