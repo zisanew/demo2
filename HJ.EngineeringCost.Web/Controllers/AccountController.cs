@@ -34,7 +34,7 @@ public class AccountController : Controller
     /// 处理登录请求
     /// </summary>
     [HttpPost]
-    public async Task<BaseResult> LoginOn([FromBody] LoginInput input)
+    public async Task<BaseResult> LoginOn([FromBody] LoginDto input)
     {
         var result = new BaseResult();
 

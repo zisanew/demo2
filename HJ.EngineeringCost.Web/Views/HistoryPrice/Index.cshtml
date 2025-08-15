@@ -1,0 +1,88 @@
+﻿@{
+    ViewBag.Title = "历史价格";
+    Layout = "~/Views/Shared/_LayoutList.cshtml";
+    var brandList = ViewBag.BrandList as List<string> ?? new List<string>();
+}
+<!--搜索区域-->
+<div class="layui-row">
+    <form class="layui-form layui-col-md12 ok-search">
+        <div class="layui-input-inline">
+            <input class="layui-input" name="MaterialName" placeholder="请输入材料名称" autocomplete="off">
+        </div>
+        <div class="layui-input-inline">
+            <input class="layui-input" name="MaterialCode" placeholder="请输入材料编码" autocomplete="off">
+        </div>
+        <div class="layui-input-inline">
+            <select name="Brand" lay-verify="" lay-search>
+                <option value="">全部品牌</option>
+                @foreach (var brand in brandList)
+                {
+                    <option value="@brand">@brand</option>
+                }
+            </select>
+        </div>
+        <button class="layui-btn layui-btn-sm layui-btn-normal btn-search" lay-submit lay-filter="search">
+            <i class='layui-icon'>&#xe615;</i>查询
+        </button>
+        <button class="layui-btn layui-btn-sm layui-btn-primary" id="resetSearch">重置</button>
+    </form>
+</div>
+<!--数据表格-->
+<table class="layui-hide" id="tableId" lay-filter="tableFilter"></table>
+<script type="text/javascript">
+    layui.use(["table", "form", "okLayer"], function () {
+        let table = layui.table;
+        let form = layui.form;
+        let okLayer = layui.okLayer;
+
+        let tableInit = table.render({
+            elem: "#tableId",
+            url: "/api/HistoryPrice",
+            limit: 10,
+            height: "full-" + searchHeight(),
+            page: true,
+            defaultToolbar: ["filter", "exports"],
+            size: "xs",
+            cols: [[
+                { type: "checkbox" },
+                { title: "操作", align: "center", templet: "#toolTpl", width: 140 },
+                { field: "materialName", title: "材料名称", sort: true },
+                { field: "materialCode", title: "材料编码", sort: true },
+                { field: "spec", title: "规格", sort: true },
+                { field: "price", title: "当前材料单价", sort: true },
+                { field: "wagesPrice", title: "当前工资单价", sort: true },
+                { field: "createTime", title: "创建时间", width: 160, sort: true }
+            ]],
+            where: $("form").serializeObject(),
+            request: {
+                pageName: "PageIndex",
+                limitName: "PageSize"
+            }
+        });
+
+        table.on("tool(tableFilter)", function (obj) {
+            let data = obj.data;
+            switch (obj.event) {
+                case "btn-graph":
+                    okLayer.open(data.materialName + " 历史价格走势", "/api/HistoryPrice/Graph?id=" + data.id, "80%", "80%", null, null);
+                    break;
+                case "btn-edit":
+                    okLayer.open("详情", "/api/HistoryPrice/Form?id=" + data.id, "80%", "80%", null, null);
+                    break;
+            }
+        });
+
+        form.on("submit(search)", function (data) {
+            tableInit.reload({
+                where: data.field,
+                page: { curr: 1 }
+            });
+            return false;
+        });
+    });
+</script>
+<!-- 行工具栏模板 -->
+<script type="text/html" id="toolTpl">
+    <button class="layui-btn layui-btn-xs layui-btn-normal" lay-event="btn-graph">价格走势</button>
+    <button class="layui-btn layui-btn-xs layui-btn-normal" lay-event="btn-edit">详情</button>
+</script>

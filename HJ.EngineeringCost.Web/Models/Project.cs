@@ -18,10 +18,10 @@ public class Project : EntityBase
     public string ProjectCode { get; set; }
 
     /// <summary>
-    /// 工程类型
+    /// 项目类型
     /// </summary>
     [Column(StringLength = 30)]
-    public string EngineeringType { get; set; }
+    public string ProjectType { get; set; }
 
     /// <summary>
     /// 工程标准

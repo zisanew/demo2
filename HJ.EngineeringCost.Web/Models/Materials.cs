@@ -5,6 +5,7 @@ using System.ComponentModel.DataAnnotations;
 namespace HJ.EngineeringCost.Web.Models;
 
 [Table(Name = "materials")]
+[Index("idx_materials_name_spec_brand", $"{nameof(MaterialName)},{nameof(Spec)},{nameof(Brand)}", IsUnique = true)]
 public class Materials : EntityBase
 {
     /// <summary>
@@ -72,10 +73,10 @@ public class Materials : EntityBase
     public string Quality { get; set; }
 
     /// <summary>
-    /// 品牌
+    /// 厂牌
     /// </summary>
     [Unique]
-    [Display(Name = "品牌")]
+    [Display(Name = "厂牌")]
     [Column(StringLength = 100)]
     public string Brand { get; set; }
 
@@ -90,4 +91,16 @@ public class Materials : EntityBase
     /// </summary>
     [Column(StringLength = 255)]
     public string Remark { get; set; }
+
+    /// <summary>
+    /// 历史价格
+    /// </summary>
+    [Navigate(nameof(HistoryPrice.MaterialId))]
+    public List<HistoryPrice> HistoryPriceList { get; set; }
+
+    /// <summary>
+    /// 历史工资价格
+    /// </summary>
+    [Navigate(nameof(HistoryWagesPrice.MaterialId))]
+    public List<HistoryWagesPrice> HistoryWagesPriceList { get; set; }
 }

@@ -4,12 +4,9 @@ using Microsoft.AspNetCore.Mvc;
 
 namespace HJ.EngineeringCost.Web.Controllers;
 
-/// <summary>
-/// 物料信息
-/// </summary>
 [AllowAnonymous]
 [Route("/api/[controller]/[action]")]
-public class MaterialsController : BaseController<Materials, MaterialsInput>
+public class MaterialsController : BaseController<Materials, MaterialsDto>
 {
     public MaterialsController(IServiceScopeFactory serviceScopeFactory)
         : base(serviceScopeFactory)
@@ -54,9 +51,9 @@ public class MaterialsController : BaseController<Materials, MaterialsInput>
     /// <param name="input"></param>
     /// <returns></returns>
     [HttpPost]
-    public override async Task<BaseResult<IEnumerable<MaterialsInput>>> UpdateAsync([FromBody] BaseCUDInput<MaterialsInput> input)
+    public override async Task<BaseResult<IEnumerable<MaterialsDto>>> UpdateAsync([FromBody] BaseCUDInput<MaterialsDto> input)
     {
-        var result = new BaseResult<IEnumerable<MaterialsInput>>();
+        var result = new BaseResult<IEnumerable<MaterialsDto>>();
         try
         {
             if (input.Data == null || input.Data.Count() == 0)
@@ -64,7 +61,7 @@ public class MaterialsController : BaseController<Materials, MaterialsInput>
                 return result.Set(1001, "请求参数Data为空");
             }
 
-            var list = new List<MaterialsInput>();
+            var list = new List<MaterialsDto>();
 
             using var uow = _fsql.CreateUnitOfWork();
 
@@ -132,6 +129,44 @@ public class MaterialsController : BaseController<Materials, MaterialsInput>
             _logger.Error(ex, $"物料信息|Update 异常，请求参数：{input}");
         }
 
+        return result;
+    }
+
+    /// <summary>
+    /// 数据清洗
+    /// </summary>
+    /// <param name="input"></param>
+    /// <returns></returns>
+    [HttpPost]
+    public async Task<BaseResult> DataCleaningAsync()
+    {
+        var result = new BaseResult();
+        var materialList = await _fsql.Select<Materials>().ToListAsync();
+
+        var duplicateCount = 0;
+        var delIdList = new List<long>();
+        var existsCombinationList = new HashSet<string>();
+
+        foreach (var material in materialList)
+        {
+            var combination = $"{material.MaterialName}_{material.Brand}_{material.Spec}";
+            if (existsCombinationList.Contains(combination))
+            {
+                delIdList.Add(material.Id);
+                duplicateCount++;
+            }
+            else
+            {
+                existsCombinationList.Add(combination);
+            }
+        }
+
+        if (delIdList.Any())
+        {
+            await _fsql.Delete<Materials>().Where(m => delIdList.Contains(m.Id)).ExecuteAffrowsAsync();
+        }
+
+        result.Message = $"已排查 {materialList.Count} 条数据，其中重复记录：{duplicateCount} 条";
         return result;
     }
 }

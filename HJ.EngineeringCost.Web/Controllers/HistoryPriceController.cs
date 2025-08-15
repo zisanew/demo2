@@ -1,7 +1,11 @@
-﻿using Microsoft.AspNetCore.Mvc;
+﻿using Mapster;
+using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Mvc;
 
 namespace HJ.EngineeringCost.Web.Controllers;
 
+[AllowAnonymous]
+[Route("/api/[controller]/[action]")]
 public class HistoryPriceController : BaseController
 {
     public HistoryPriceController(IServiceScopeFactory serviceScopeFactory)
@@ -9,14 +13,26 @@ public class HistoryPriceController : BaseController
     {
     }
 
-    public IActionResult Index()
+    public async Task<IActionResult> Index()
     {
+        var brandList = await _fsql.Select<Materials>()
+            .Distinct()
+            .ToListAsync(x => x.Brand);
+
+        ViewBag.BrandList = brandList;
+
         return View();
     }
 
     public async Task<IActionResult> Form(long id)
     {
-        //var model = await GetByIdAsync(id);
+        var model = await _fsql.Select<Materials>(id).FirstAsync();
+        return View(model);
+    }
+
+    public IActionResult Graph(long id)
+    {
+        ViewBag.MaterialId = id;
         return View();
     }
 
@@ -32,6 +48,7 @@ public class HistoryPriceController : BaseController
         var list = await _fsql.Select<Materials>()
             .WhereIf(input.MaterialCode != null, x => x.MaterialCode.Contains(input.MaterialCode))
             .WhereIf(input.MaterialName != null, x => x.MaterialName.Contains(input.MaterialName))
+            .WhereIf(input.Brand != null, x => x.Brand.Contains(input.Brand))
             .OrderBy(!string.IsNullOrEmpty(input.Sort), input.Sort)
             .Count(out var total)
             .Page(input.PageIndex, input.PageSize)
@@ -41,18 +58,23 @@ public class HistoryPriceController : BaseController
         return Ok(result);
     }
 
-    //public async Task<IActionResult> GetHistoryPriceTrendsAsync([FromQuery] GetHistoryPriceInput input)
-    //{
-    //    // Implement the logic to fetch historical prices based on the input criteria
-    //    var historyPrices = await _fsql.Select<HistoryPrice>()
-    //        .WhereIf(input.MaterialId > 0, x => x.MaterialId == input.MaterialId)
-    //        .WhereIf(input.StartDate != null, x => x.Date >= input.StartDate)
-    //        .WhereIf(input.EndDate != null, x => x.Date <= input.EndDate)
-    //        .OrderBy(!string.IsNullOrEmpty(input.Sort), input.Sort)
-    //        .Count(out var total)
-    //        .Page(input.PageIndex, input.PageSize)
-    //        .ToListAsync();
-    //    var result = new { Code = 0, total, Data = historyPrices };
-    //    return Ok(result);
-    //}
+    /// <summary>
+    /// 历史价格走势
+    /// </summary>
+    /// <param name="input"></param>
+    /// <returns></returns>
+    public async Task<BaseResult<MaterialsDto>> GetHistoryPriceTrendsAsync([FromQuery] GetMaterialsByIdInput input)
+    {
+        var result = new BaseResult<MaterialsDto>();
+
+        var material = await _fsql.Select<Materials>()
+            .IncludeMany(m => m.HistoryPriceList)
+            .IncludeMany(m => m.HistoryWagesPriceList)
+            .Where(m => m.Id == input.Id)
+            .ToOneAsync();
+
+        result.Data = material.Adapt<MaterialsDto>();
+
+        return result;
+    }
 }

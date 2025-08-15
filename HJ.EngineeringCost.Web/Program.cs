@@ -1,9 +1,12 @@
 using FreeSql;
 using HJ.EngineeringCost.Web.Filter;
+using HJ.EngineeringCost.Web.MapConfig;
 using Mapster;
+using MapsterMapper;
 using Microsoft.AspNetCore.Authentication.Cookies;
 using Serilog;
 using Serilog.Events;
+using System.Reflection;
 using System.Text.Json;
 using System.Text.Json.Serialization;
 using System.Text.Json.Serialization.Metadata;
@@ -34,7 +37,13 @@ public class Program
             builder.Services.AddSingleton(CreateFreeSql(appConfig));
             builder.Services.AddSingleton(Log.Logger);
 
-            builder.Services.AddMapster();
+            #region Mapster
+
+            var assembly = Assembly.Load("HJ.EngineeringCost.Web");
+            TypeAdapterConfig.GlobalSettings.Scan(assembly);
+            builder.Services.AddSingleton<IMapper>(sp => new Mapper(TypeAdapterConfig.GlobalSettings));
+
+            #endregion
 
             // 注册业务服务
             RegisterServices(builder.Services);

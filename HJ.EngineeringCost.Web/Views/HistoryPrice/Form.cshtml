@@ -1,0 +1,108 @@
+﻿@model HJ.EngineeringCost.Web.Models.Materials
+@{
+    Layout = "~/Views/Shared/_LayoutForm.cshtml";
+}
+<form class="layui-form layui-form-pane ok-form" lay-filter="formSave">
+    <input type="hidden" name="Id" value="@Model.Id" />
+    <div class="layui-form-item">
+        <div class="pl-form-line">
+            <label class="layui-form-label">材料名称</label>
+            <div class="pl-form-input-block">
+                <input name="MaterialName" value="@Model.MaterialName" class="layui-input" type="text" autocomplete="off" readonly />
+            </div>
+        </div>
+        <div class="pl-form-line">
+            <label class="layui-form-label">材料编码</label>
+            <div class="pl-form-input-block">
+                <input name="MaterialCode" value="@Model.MaterialCode" class="layui-input" type="text" autocomplete="off" readonly />
+            </div>
+        </div>
+        <div class="pl-form-line">
+            <label class="layui-form-label">属性</label>
+            <div class="pl-form-input-block">
+                <input name="MaterialType" value="@Model.MaterialType" class="layui-input" type="text" autocomplete="off" readonly />
+            </div>
+        </div>
+        <div class="pl-form-line">
+            <label class="layui-form-label">材质</label>
+            <div class="pl-form-input-block">
+                <input name="Quality" value="@Model.Quality" class="layui-input" type="text" autocomplete="off" readonly />
+            </div>
+        </div>
+        <div class="pl-form-line">
+            <label class="layui-form-label">规格</label>
+            <div class="pl-form-input-block">
+                <input name="Spec" value="@Model.Spec" class="layui-input" type="text" autocomplete="off" readonly />
+            </div>
+        </div>
+        <div class="pl-form-line">
+            <label class="layui-form-label">厂牌</label>
+            <div class="pl-form-input-block">
+                <input name="Brand" value="@Model.Brand" class="layui-input" type="text" autocomplete="off" readonly />
+            </div>
+        </div>
+        <div class="pl-form-line">
+            <label class="layui-form-label">单位</label>
+            <div class="pl-form-input-block">
+                <input name="Unit" value="@Model.Unit" class="layui-input" type="text" autocomplete="off" readonly />
+            </div>
+        </div>
+        <div class="pl-form-line">
+            <label class="layui-form-label">数量</label>
+            <div class="pl-form-input-block">
+                <input name="Qty" value="@Model.Qty" class="layui-input" type="text" autocomplete="off" readonly />
+            </div>
+        </div>
+        <div class="pl-form-line">
+            <label class="layui-form-label">当前材料单价</label>
+            <div class="pl-form-input-block">
+                <input name="Price" value="@Model.Price" class="layui-input" type="text" autocomplete="off" readonly />
+            </div>
+        </div>
+        <div class="pl-form-line">
+            <label class="layui-form-label">工资单价</label>
+            <div class="pl-form-input-block">
+                <input name="WagesPrice" value="@Model.WagesPrice" class="layui-input" type="text" autocomplete="off" readonly />
+            </div>
+        </div>
+        <div class="pl-form-line">
+            <label class="layui-form-label">总价</label>
+            <div class="pl-form-input-block">
+                <input name="TotalPrice" value="@((Model.Price + Model.WagesPrice) * Model.Qty)" class="layui-input" type="text" autocomplete="off" readonly />
+            </div>
+        </div>
+        <div class="pl-form-line">
+            <label class="layui-form-label">供应商</label>
+            <div class="pl-form-input-block">
+                <input name="Supplier" value="@Model.Supplier" class="layui-input" type="text" autocomplete="off" readonly />
+            </div>
+        </div>
+        <div class="pl-form-line">
+            <label class="layui-form-label">联系电话</label>
+            <div class="pl-form-input-block">
+                <input name="ContactPhone" value="@Model.ContactPhone" class="layui-input" type="text" autocomplete="off" readonly />
+            </div>
+        </div>
+        <div class="pl-form-line">
+            <label class="layui-form-label">创建时间</label>
+            <div class="pl-form-input-block">
+                <input name="ContactPhone" value="@Model.CreateTime" class="layui-input" type="text" autocomplete="off" readonly />
+            </div>
+        </div>
+        <div class="pl-form-line">
+            <label class="layui-form-label">更新时间</label>
+            <div class="pl-form-input-block">
+                <input name="ContactPhone" value="@Model.UpdateTime" class="layui-input" type="text" autocomplete="off" readonly />
+            </div>
+        </div>
+        <div class="pl-form-line">
+            <label class="layui-form-label">备注</label>
+            <div class="pl-form-input-block">
+                <input name="Remark" value="@Model.Remark" class="layui-input" type="text" autocomplete="off" readonly />
+            </div>
+        </div>
+    </div>
+    <div class="fixed-buttons">
+        <button type="button" class="layui-btn layui-btn-sm layui-btn-primary" id="close">关闭</button>
+    </div>
+</form>

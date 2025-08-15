@@ -24,6 +24,25 @@ public class BaseController : Controller
         _fsql = scope.ServiceProvider.GetRequiredService<IFreeSql>();
         _logger = scope.ServiceProvider.GetRequiredService<ILogger>();
     }
+
+    /// <summary>
+    /// 下载模板文件
+    /// </summary>
+    /// <param name="templateName"></param>
+    /// <returns></returns>
+    [HttpGet]
+    public IActionResult DownloadTemplateAsync(string templateName)
+    {
+        var templatePath = Path.Combine(Directory.GetCurrentDirectory(), "wwwroot", "doc", templateName);
+
+        if (!System.IO.File.Exists(templatePath))
+        {
+            return NotFound($"模板文件 {templateName} 不存在");
+        }
+
+        var fileBytes = System.IO.File.ReadAllBytes(templatePath);
+        return File(fileBytes, "application/octet-stream", templateName);
+    }
 }
 
 public class BaseController<TEntity, TEntityDto> : BaseController
@@ -227,38 +246,43 @@ public class BaseController<TEntity, TEntityDto> : BaseController
             return result;
         }
 
+        var parameter = Expression.Parameter(entityType, "x");
+        Expression combinedCondition = null;
+        var fieldList = new List<string>();
+
         foreach (var property in properties)
         {
             var value = property.GetValue(dto);
             if (value == null) continue;
 
-            var parameter = Expression.Parameter(entityType, "x");
+            var displayName = property.GetCustomAttribute<DisplayAttribute>()?.Name ?? property.Name;
+            fieldList.Add($"{displayName} {value}");
+
             var propertyExpr = Expression.Property(parameter, property.Name);
             var constantExpr = Expression.Constant(value);
             var equalExpr = Expression.Equal(propertyExpr, constantExpr);
-            var predicate = Expression.Lambda<Func<TEntity, bool>>(equalExpr, parameter);
 
-            var query = _fsql.Select<TEntity>().Where(predicate);
+            combinedCondition = combinedCondition == null
+                ? equalExpr
+                : Expression.AndAlso(combinedCondition, equalExpr);
+        }
 
-            if (dto.Id > 0)
-            {
-                var idProperty = entityType.GetProperty("Id");
-                if (idProperty != null)
-                {
-                    var idParam = Expression.Parameter(entityType, "x");
-                    var idPropertyExpr = Expression.Property(idParam, idProperty.Name);
-                    var excludeIdExpr = Expression.Constant(dto.Id);
-                    var notEqualExpr = Expression.NotEqual(idPropertyExpr, excludeIdExpr);
-                    var idPredicate = Expression.Lambda<Func<TEntity, bool>>(notEqualExpr, idParam);
-                    query = query.Where(idPredicate);
-                }
-            }
+        if (combinedCondition == null)
+        {
+            return result;
+        }
 
-            if (await query.AnyAsync())
-            {
-                var displayName = property.GetCustomAttribute<DisplayAttribute>()?.Name ?? property.Name;
-                return result.Set(1001, $"{displayName} {value} 已存在");
-            }
+        var predicate = Expression.Lambda<Func<TEntity, bool>>(combinedCondition, parameter);
+        var query = _fsql.Select<TEntity>().Where(predicate);
+
+        if (dto.Id > 0)
+        {
+            query = query.Where(x => x.Id != dto.Id);
+        }
+
+        if (await query.AnyAsync())
+        {
+            return result.Set(1001, $"{string.Join("，", fieldList)} 已存在");
         }
 
         return result;

@@ -3,12 +3,9 @@ using Microsoft.AspNetCore.Mvc;
 
 namespace HJ.EngineeringCost.Web.Controllers;
 
-/// <summary>
-/// 基础类型
-/// </summary>
 [AllowAnonymous]
 [Route("/api/[controller]/[action]")]
-public class BaseTypeController : BaseController<BaseType, BaseTypeInput>
+public class BaseTypeController : BaseController<BaseType, BaseTypeDto>
 {
     public BaseTypeController(IServiceScopeFactory serviceScopeFactory)
         : base(serviceScopeFactory)

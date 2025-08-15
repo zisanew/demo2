@@ -25,6 +25,7 @@
         let form = layui.form;
         let okLayer = layui.okLayer;
         let okUtils = layui.okUtils;
+        let isCleaning = false;
 
         let tableInit = table.render({
             elem: "#tableId",
@@ -67,9 +68,26 @@
                     break;
 
                  case "btn-dataCleaning":
+                    okLayer.confirm("确定要执行数据清洗吗？\n此操作将删除重复数据，可能需要一段时间，请耐心等待。", function () {
+                        isCleaning = true;
+                        let loadingIndex = layer.load(0, { shade: false });
+
+                        okUtils.ajax("/api/Materials/DataCleaning", "post", null, true).done(function (res) {
+                            okLayer.greenTickMsg(res.message, null, 2000);
+                            tableInit.reload();
+                        }).fail(function (error) {
+                            okLayer.redCrossMsg("数据清洗失败：" + (error.message || "网络错误"));
+                            console.log(error);
+                        })
+                        .always(function () {
+                            layer.close(loadingIndex);
+                            isCleaning = false;
+                        });
+                    });
                     break;
 
                  case "btn-downloadTemplet":
+                    window.location.href = "/api/Materials/DownloadTemplate?templateName=材料导入模板.xlsx";
                     break;
 
                  case "btn-importExcel":

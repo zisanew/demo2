@@ -1,6 +1,6 @@
 ﻿namespace HJ.EngineeringCost.Web.Dtos;
 
-public class GetPageBaseTypeInput : BasePageInput
+public class GetPageProjectTypeInput : BasePageInput
 {
     /// <summary>
     /// 类型名称
@@ -8,6 +8,6 @@ public class GetPageBaseTypeInput : BasePageInput
     public string? TypeName { get; set; }
 }
 
-public class BaseTypeInput : BaseType
+public class ProjectTypeDto : ProjectType
 {
 }

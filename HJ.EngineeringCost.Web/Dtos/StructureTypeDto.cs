@@ -8,6 +8,6 @@ public class GetPageStructureTypeInput : BasePageInput
     public string? TypeName { get; set; }
 }
 
-public class StructureTypeInput : StructureType
+public class StructureTypeDto : StructureType
 {
 }

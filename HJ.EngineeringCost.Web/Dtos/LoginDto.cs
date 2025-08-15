@@ -1,6 +1,6 @@
 ﻿namespace HJ.EngineeringCost.Web.Dtos;
 
-public class LoginInput
+public class LoginDto
 {
     /// <summary>
     /// 用户名

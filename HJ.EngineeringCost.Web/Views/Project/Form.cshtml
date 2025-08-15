@@ -1,0 +1,106 @@
+﻿@model HJ.EngineeringCost.Web.Models.Project
+@{
+    Layout = "~/Views/Shared/_LayoutForm.cshtml";
+    var url = Model?.Id == null ? "/api/Project/Create" : "/api/Project/Update";
+}
+<form class="layui-form layui-form-pane ok-form" lay-filter="formSave">
+    <input type="hidden" name="Id" value="@Model?.Id" />
+    <div class="layui-form-item">
+        <div class="pl-form-line">
+            <label class="layui-form-label">厂区</label>
+            <div class="pl-form-input-block">
+                <input name="Factory" value="@Model?.Factory" class="layui-input" type="text" placeholder="请输入厂区" autocomplete="off" />
+            </div>
+        </div>
+        <div class="pl-form-line">
+            <label class="layui-form-label">项目名称</label>
+            <div class="pl-form-input-block">
+                <input name="ProjectName" value="@Model?.ProjectName" class="layui-input" type="text" placeholder="请输入项目名称" autocomplete="off" />
+            </div>
+        </div>
+        <div class="pl-form-line">
+            <label class="layui-form-label">项目编号</label>
+            <div class="pl-form-input-block">
+                <input name="ProjectCode" value="@Model?.ProjectCode" class="layui-input" type="text" placeholder="请输入项目编号" autocomplete="off" />
+            </div>
+        </div>
+        <div class="pl-form-line">
+            <label class="layui-form-label">项目类型</label>
+            <div class="pl-form-input-block">
+                <input name="ProjectType" value="@Model?.ProjectType" class="layui-input" type="text" placeholder="请输入项目类型" autocomplete="off" />
+            </div>
+        </div>
+        <div class="pl-form-line">
+            <label class="layui-form-label">结构类型</label>
+            <div class="pl-form-input-block">
+                <input name="StructureType" value="@Model?.StructureType" class="layui-input" type="text" placeholder="请输入结构类型" autocomplete="off" />
+            </div>
+        </div>
+        <div class="pl-form-line">
+            <label class="layui-form-label">基础类型</label>
+            <div class="pl-form-input-block">
+                <input name="BaseType" value="@Model?.BaseType" class="layui-input" type="text" placeholder="请输入基础类型" autocomplete="off" />
+            </div>
+        </div>
+        <div class="pl-form-line">
+            <label class="layui-form-label">工程标准</label>
+            <div class="pl-form-input-block">
+                <input name="EngineeringStandard" value="@Model?.EngineeringStandard" class="layui-input" type="text" placeholder="请输入工程标准" autocomplete="off" />
+            </div>
+        </div>
+        <div class="pl-form-line">
+            <label class="layui-form-label">工程价格</label>
+            <div class="pl-form-input-block">
+                <input name="EngineeringPrice" value="@Model?.EngineeringPrice" class="layui-input" type="text" placeholder="请输入工程价格" autocomplete="off" readonly />
+            </div>
+        </div>
+        <div class="pl-form-line">
+            <label class="layui-form-label">建设单位</label>
+            <div class="pl-form-input-block">
+                <input name="ConstructionUnit" value="@Model?.ConstructionUnit" class="layui-input" type="text" placeholder="请输入建设单位" autocomplete="off" />
+            </div>
+        </div>
+        <div class="pl-form-line">
+            <label class="layui-form-label">设计单位</label>
+            <div class="pl-form-input-block">
+                <input name="DesignUnit" value="@Model?.DesignUnit" class="layui-input" type="text" placeholder="请输入设计单位" autocomplete="off" />
+            </div>
+        </div>
+        <div class="pl-form-line">
+            <label class="layui-form-label">施工单位</label>
+            <div class="pl-form-input-block">
+                <input name="ConstructionCompany" value="@Model?.ConstructionCompany" class="layui-input" type="text" placeholder="请输入施工单位" autocomplete="off" />
+            </div>
+        </div>
+        <div class="pl-form-line">
+            <label class="layui-form-label">编制日期</label>
+            <div class="pl-form-input-block">
+                <input name="CreateTime" value="@Model?.CreateTime" class="layui-input" type="text" placeholder="请输入编制日期" autocomplete="off" readonly />
+            </div>
+        </div>
+    </div>
+    <div class="fixed-buttons">
+        <button class="layui-btn layui-btn-sm layui-btn-normal" lay-submit lay-filter="save">保存</button>
+        <button type="button" class="layui-btn layui-btn-sm layui-btn-primary" id="close">取消</button>
+    </div>
+</form>
+<script type="text/javascript">
+    layui.use(["form", "okLayer", "okUtils"], function () {
+        let form = layui.form;
+        let okLayer = layui.okLayer;
+        let okUtils = layui.okUtils;
+
+        form.on("submit(save)", function (data) {
+            const requestData = {
+                data: [data.field]
+            };
+
+            okUtils.ajax("@url", "post", requestData, true).done(function (res) {
+                okLayer.greenTickMsg(res.message, CloseWin);
+            }).fail(function (error) {
+                console.log(error);
+            });
+            return false;
+        });
+    });
+</script>
