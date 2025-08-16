@@ -40,7 +40,7 @@ public class SysUser : EntityBase
     public string Email { get; set; }
 
     /// <summary>
-    /// 用户状态 (1 启动 - 2 禁用 - 3 锁定)
+    /// 用户状态 (1 启动 - 2 禁用)
     /// </summary>
     [Column(MapType = typeof(int))]
     public UserStatus UserStatus { get; set; } = UserStatus.Enable;
@@ -50,11 +50,6 @@ public class SysUser : EntityBase
     /// </summary>
     [Column(StringLength = 20)]
     public string Phone { get; set; }
-
-    /// <summary>
-    /// 最后一次登录的时间
-    /// </summary>
-    public DateTime? LastLoginTime { get; set; }
 
     /// <summary>
     /// 角色ID

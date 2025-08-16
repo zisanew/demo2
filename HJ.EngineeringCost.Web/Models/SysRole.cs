@@ -15,12 +15,6 @@ public class SysRole : EntityBase
     public string RoleName { get; set; }
 
     /// <summary>
-    /// 角色代码
-    /// </summary>
-    [Column(StringLength = 50, IsNullable = false)]
-    public string RoleCode { get; set; }
-
-    /// <summary>
     /// 角色描述
     /// </summary>
     [Column(StringLength = 200)]

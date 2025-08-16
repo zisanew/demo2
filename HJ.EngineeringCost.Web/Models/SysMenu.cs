@@ -15,10 +15,10 @@ public class SysMenu : EntityBase
     public string MenuName { get; set; }
 
     /// <summary>
-    /// 菜单地址
+    /// 菜单URL
     /// </summary>
     [Column(StringLength = 200)]
-    public string Path { get; set; }
+    public string Url { get; set; }
 
     /// <summary>
     /// 菜单图标
@@ -40,4 +40,10 @@ public class SysMenu : EntityBase
     /// 是否显示
     /// </summary>
     public bool IsShow { get; set; } = true;
+
+    /// <summary>
+    /// 子菜单
+    /// </summary>
+    [Column(IsIgnore = true)]
+    public List<SysMenu> Children { get; set; }
 }

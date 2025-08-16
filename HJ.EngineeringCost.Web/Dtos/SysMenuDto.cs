@@ -2,10 +2,11 @@
 
 public class GetPageSysMenuInput : BasePageInput
 {
-    /// <summary>
-    /// 类型名称
-    /// </summary>
-    public string? TypeName { get; set; }
+    public string? MenuName { get; set; }
+
+    public long? ParentId { get; set; }
+
+    public bool? IsShow { get; set; }
 }
 
 public class SysMenuDto : SysMenu

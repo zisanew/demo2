@@ -3,7 +3,8 @@ using Microsoft.AspNetCore.Mvc;
 
 namespace HJ.EngineeringCost.Web.Controllers;
 
-[Authorize]
+//[Authorize]
+[AllowAnonymous]
 [Route("/api/[controller]/[action]")]
 public class SysRoleMenuController : BaseController
 {
@@ -12,53 +13,64 @@ public class SysRoleMenuController : BaseController
     {
     }
 
+    public IActionResult Permission(long roleId)
+    {
+        ViewBag.RoleId = roleId;
+        return View();
+    }
+
+    /// <summary>
+    /// 获取角色已分配的菜单ID列表
+    /// </summary>
+    /// <param name="roleId">角色ID</param>
+    /// <returns>菜单ID列表</returns>
     [HttpGet]
-    public async Task<IActionResult> GetRoleMenus(long roleId)
+    public async Task<IActionResult> GetRoleMenuIdsAsync(long roleId)
     {
         var menuIds = await _fsql.Select<SysRoleMenu>()
             .Where(x => x.RoleId == roleId)
-            .ToListAsync(x => x.MenuId);
+            .ToListAsync()
+            .ContinueWith(t => t.Result.Select(x => x.MenuId).ToList());
 
         return Ok(new { Code = 0, Data = menuIds });
     }
 
     [HttpPost]
-    public async Task<BaseResult> AssignMenus([FromBody] RoleMenuInput input)
+    public async Task<BaseResult> SaveRoleMenusAsync([FromBody] SysRoleMenuDto input)
     {
         var result = new BaseResult();
         try
         {
-            using var uow = _fsql.CreateUnitOfWork();
-            // 先删除原有关联
-            await uow.Orm.Delete<SysRoleMenu>()
+            if (input.RoleId <= 0)
+            {
+                return result.Set(1001, "角色ID不能为空");
+            }
+
+            // 1. 删除该角色原有的所有权限关联
+            await _fsql.Delete<SysRoleMenu>()
                 .Where(x => x.RoleId == input.RoleId)
                 .ExecuteAffrowsAsync();
 
-            // 新增关联
-            if (input.MenuIds != null && input.MenuIds.Any())
+            // 2. 批量插入新的权限关联
+            if (input.MenuIdList != null && input.MenuIdList.Any())
             {
-                var roleMenus = input.MenuIds.Select(menuId => new SysRoleMenu
+                var roleMenus = input.MenuIdList.Select(menuId => new SysRoleMenu
                 {
                     RoleId = input.RoleId,
                     MenuId = menuId
                 }).ToList();
 
-                await uow.Orm.Insert(roleMenus).ExecuteAffrowsAsync();
+                await _fsql.Insert(roleMenus).ExecuteAffrowsAsync();
             }
 
-            uow.Commit();
+            result.Message = "权限分配成功";
         }
         catch (Exception ex)
         {
-            result.Set(1001, ex.Message);
-            _logger.Error(ex, $"角色分配菜单异常，角色ID：{input.RoleId}");
+            result.Set(1001, $"权限分配失败：{ex.Message}");
+            _logger.Error(ex, $"角色权限分配异常，RoleId：{input.RoleId}");
         }
+
         return result;
     }
-}
-
-public class RoleMenuInput
-{
-    public long RoleId { get; set; }
-    public List<long> MenuIds { get; set; }
 }

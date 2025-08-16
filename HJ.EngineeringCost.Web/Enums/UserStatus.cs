@@ -17,11 +17,5 @@ public enum UserStatus
     /// 禁用
     /// </summary>
     [Description("禁用")]
-    Disable = 2,
-
-    /// <summary>
-    /// 锁定
-    /// </summary>
-    [Description("锁定")]
-    Locked = 3
+    Disable = 2
 }

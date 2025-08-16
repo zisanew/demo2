@@ -1,0 +1,121 @@
+﻿@{
+    ViewBag.Title = "菜单管理";
+    Layout = "~/Views/Shared/_LayoutList.cshtml";
+}
+
+<!-- 搜索区域 -->
+<div class="layui-row">
+    <form class="layui-form layui-col-md12 ok-search">
+        <div class="layui-input-inline">
+            <input class="layui-input" name="MenuName" placeholder="请输入菜单名称" autocomplete="off">
+        </div>
+        <div class="layui-input-inline">
+            <select name="IsShow" lay-verify="required">
+                <option value="">是否显示</option>
+                <option value="true">是</option>
+                <option value="false">否</option>
+            </select>
+        </div>
+        <button class="layui-btn layui-btn-sm layui-btn-normal btn-search" lay-submit lay-filter="search">
+            <i class='layui-icon'>&#xe615;</i>查询
+        </button>
+        <button class="layui-btn layui-btn-sm layui-btn-primary" id="resetSearch">重置</button>
+    </form>
+</div>
+
+<!-- 数据表格 -->
+<table class="layui-hide" id="tableId" lay-filter="tableFilter"></table>
+
+<script type="text/javascript">
+    layui.use(["table", "form", "okLayer", "okUtils"], function () {
+        let table = layui.table;
+        let form = layui.form;
+        let okLayer = layui.okLayer;
+        let okUtils = layui.okUtils;
+
+        // 渲染表格
+        let tableInit = table.render({
+            elem: "#tableId",
+            url: "/api/SysMenu",
+            limit: 10,
+            height: "full-" + searchHeight(),
+            page: true,
+            toolbar: "#toolbarTpl",
+            defaultToolbar: ["filter", "exports"],
+            size: "xs",
+            cols: [[
+                { type: "checkbox" },
+                { title: "操作", align: "center", templet: "#toolTpl", width: 100 },
+                { field: "menuName", title: "菜单名称", sort: true },
+                { field: "url", title: "菜单URL" },
+                { field: "icon", title: "图标", templet: function(d) { return d.icon ? `<i class="layui-icon ${d.icon}"></i>` : ''; } },
+                { field: "parentId", title: "父级ID", sort: true },
+                { field: "sort", title: "排序号", sort: true },
+                { field: "isShow", title: "是否显示", sort: true, templet: function(d) { return d.isShow ? '<span class="layui-badge layui-bg-green">是</span>' : '<span class="layui-badge layui-bg-gray">否</span>'; } }
+            ]],
+            where: $("form").serializeObject(),
+            request: {
+                pageName: "PageIndex",
+                limitName: "PageSize"
+            }
+        });
+
+        // 头工具栏事件
+        table.on("toolbar(tableFilter)", function (obj) {
+            switch (obj.event) {
+                case "btn-add":
+                    okLayer.open("新增菜单", "/api/SysMenu/Form", "60%", "60%", null, null);
+                    break;
+                case "btn-batchDel":
+                    var checkStatus = table.checkStatus(obj.config.id);
+                    var data = checkStatus.data;
+                    if (data.length === 0) {
+                        return okLayer.yellowSighMsg("请选择要删除的数据");
+                    }
+                    var ids = data.map(item => item.id);
+                    okLayer.confirm("确定要删除选中的菜单吗？", function () {
+                        okUtils.ajax("/api/SysMenu/Delete", "post", { data: ids }, true)
+                            .done(function (res) {
+                                okUtils.tableSuccessMsg(res.message);
+                                tableInit.reload();
+                            });
+                    });
+                    break;
+            }
+        });
+
+        // 行工具栏事件
+        table.on("tool(tableFilter)", function (obj) {
+            let data = obj.data;
+            switch (obj.event) {
+                case "btn-edit":
+                    okLayer.open("编辑菜单", `/api/SysMenu/Form?id=${data.id}`, "60%", "60%", null, null);
+                    break;
+                case "btn-view":
+                    okLayer.open("查看子菜单", `/api/SysMenu/Form?parentId=${data.id}`, "60%", "60%", null, null);
+                    break;
+            }
+        });
+
+        // 搜索表单提交
+        form.on("submit(search)", function (data) {
+            tableInit.reload({
+                where: data.field,
+                page: { curr: 1 }
+            });
+            return false;
+        });
+    });
+</script>
+
+<!-- 头工具栏模板 -->
+<script type="text/html" id="toolbarTpl">
+    <button class="layui-btn layui-btn-xs layui-btn-normal" lay-event="btn-add">新增</button>
+    <button class="layui-btn layui-btn-xs layui-btn-danger" lay-event="btn-batchDel">批量删除</button>
+</script>
+
+<!-- 行工具栏模板 -->
+<script type="text/html" id="toolTpl">
+    <button class="layui-btn layui-btn-xs layui-btn-normal" lay-event="btn-edit">编辑</button>
+    <button class="layui-btn layui-btn-xs layui-btn-primary" lay-event="btn-view">添加子菜单</button>
+</script>

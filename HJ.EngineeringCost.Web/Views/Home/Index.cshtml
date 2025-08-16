@@ -81,16 +81,19 @@
     $(document).ready(function() {
         var menuItems = [
             { url: "/Home/Index", sort: 1, title: "首页", icon: "&#xe654;" },
+            // 一级菜单（类别管理）下面的二级菜单
             { url: "/api/BaseType/Index", sort: 2, title: "基础类型", icon: "&#xe654;" },
             { url: "/api/StructureType/Index", sort: 3, title: "结构类型", icon: "&#xe654;" },
             { url: "/api/ProjectType/Index", sort: 4, title: "项目类型", icon: "&#xe654;" },
+            // 一级菜单（工程管理）下面的二级菜单
             { url: "/api/Project/Index", sort: 5, title: "项目管理", icon: "&#xe654;" },
-            { url: "/api/BaseType/Index", sort: 6, title: "价格对比", icon: "&#xe654;" },
+            { url: "/api/Indices/Index", sort: 6, title: "价格对比", icon: "&#xe654;" },
             { url: "/api/Materials/Index", sort: 7, title: "材料管理", icon: "&#xe654;" },
             { url: "/api/HistoryPrice/Index", sort: 8, title: "历史价格", icon: "&#xe654;" },
-            { url: "/api/Role/Index", sort: 9, title: "角色管理", icon: "&#xe654;" },
-            { url: "/api/BaseType/Index", sort: 10, title: "权限管理", icon: "&#xe654;" },
-            { url: "/api/User/Index", sort: 11, title: "用户管理", icon: "&#xe654;" }
+            // 一级菜单（系统管理）下面的二级菜单
+            { url: "/api/SysMenu/Index", sort: 9, title: "菜单管理", icon: "&#xe654;" },
+            { url: "/api/SysRole/Index", sort: 10, title: "角色管理", icon: "&#xe654;" },
+            { url: "/api/SysUser/Index", sort: 11, title: "用户管理", icon: "&#xe654;" }
         ];
 
         menuItems.sort((a, b) => a.sort - b.sort);

@@ -1,0 +1,64 @@
+﻿@model HJ.EngineeringCost.Web.Models.SysRole
+@{
+    Layout = "~/Views/Shared/_LayoutForm.cshtml";
+    var url = Model?.Id > 0 ? "/api/SysRole/Update" : "/api/SysRole/Create";
+}
+
+<form class="layui-form layui-form-pane ok-form" lay-filter="formSave">
+    <input type="hidden" name="Id" value="@Model?.Id" />
+
+    <div class="layui-form-item">
+        <div class="pl-form-line">
+            <label class="layui-form-label xrequired">角色名称</label>
+            <div class="pl-form-input-block">
+                <input name="RoleName" value="@Model?.RoleName" class="layui-input" type="text" placeholder="请输入角色名称" autocomplete="off" lay-verify="required" />
+            </div>
+        </div>
+    </div>
+
+    <div class="layui-form-item">
+        <div class="pl-form-line">
+            <label class="layui-form-label">角色描述</label>
+            <div class="pl-form-input-block">
+                <textarea name="Description" class="layui-textarea" placeholder="请输入角色描述" rows="3">@Model?.Description</textarea>
+            </div>
+        </div>
+    </div>
+
+    <div class="fixed-buttons">
+        <button class="layui-btn layui-btn-sm layui-btn-normal" lay-submit lay-filter="save">保存</button>
+        <button type="button" class="layui-btn layui-btn-sm layui-btn-primary" id="close">取消</button>
+    </div>
+</form>
+
+<script type="text/javascript">
+    layui.use(["form", "okLayer", "okUtils"], function () {
+        let form = layui.form;
+        let okLayer = layui.okLayer;
+        let okUtils = layui.okUtils;
+
+        // 表单提交
+        form.on("submit(save)", function (data) {
+            const requestData = {
+                data: [data.field]
+            };
+
+            okUtils.ajax("@url", "post", requestData, true)
+                .done(function (res) {
+                    okLayer.greenTickMsg(res.message, function () {
+                        parent.layer.closeAll();
+                        parent.layui.table.reload("tableId");
+                    });
+                })
+                .fail(function (error) {
+                    okLayer.redSighMsg(error.responseJSON.message || "操作失败");
+                });
+            return false;
+        });
+
+        // 取消按钮
+        $("#close").click(function () {
+            parent.layer.closeAll();
+        });
+    });
+</script>

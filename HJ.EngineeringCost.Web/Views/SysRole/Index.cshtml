@@ -1,0 +1,112 @@
+﻿@{
+    ViewBag.Title = "角色管理";
+    Layout = "~/Views/Shared/_LayoutList.cshtml";
+}
+
+<!-- 搜索区域 -->
+<div class="layui-row">
+    <form class="layui-form layui-col-md12 ok-search">
+        <div class="layui-input-inline">
+            <input class="layui-input" name="RoleName" placeholder="请输入角色名称" autocomplete="off">
+        </div>
+        <button class="layui-btn layui-btn-sm layui-btn-normal btn-search" lay-submit lay-filter="search">
+            <i class='layui-icon'>&#xe615;</i>查询
+        </button>
+        <button class="layui-btn layui-btn-sm layui-btn-primary" id="resetSearch">重置</button>
+    </form>
+</div>
+
+<!-- 数据表格 -->
+<table class="layui-hide" id="tableId" lay-filter="tableFilter"></table>
+
+<script type="text/javascript">
+    layui.use(["table", "form", "okLayer", "okUtils"], function () {
+        let table = layui.table;
+        let form = layui.form;
+        let okLayer = layui.okLayer;
+        let okUtils = layui.okUtils;
+
+        // 渲染表格
+        let tableInit = table.render({
+            elem: "#tableId",
+            url: "/api/SysRole",
+            limit: 10,
+            height: "full-" + searchHeight(),
+            page: true,
+            toolbar: "#toolbarTpl",
+            defaultToolbar: ["filter", "exports"],
+            size: "xs",
+            cols: [[
+                { type: "checkbox" },
+                { title: "操作", align: "center", templet: "#toolTpl", width: 160 },
+                { field: "roleName", title: "角色名称", sort: true },
+                { field: "description", title: "角色描述" },
+                { field: "createTime", title: "创建时间", sort: true },
+                { field: "createUserName", title: "创建人" }
+            ]],
+            where: $("form").serializeObject(),
+            request: {
+                pageName: "PageIndex",
+                limitName: "PageSize"
+            }
+        });
+
+        // 头工具栏事件
+        table.on("toolbar(tableFilter)", function (obj) {
+            switch (obj.event) {
+                case "btn-add":
+                    okLayer.open("新增角色", "/api/SysRole/Form", "60%", "50%", null, null);
+                    break;
+                case "btn-batchDel":
+                    var checkStatus = table.checkStatus(obj.config.id);
+                    var data = checkStatus.data;
+                    if (data.length === 0) {
+                        return okLayer.yellowSighMsg("请选择要删除的数据");
+                    }
+                    var ids = data.map(item => item.id);
+                    okLayer.confirm("确定要删除选中的角色吗？", function () {
+                        okUtils.ajax("/api/SysRole/Delete", "post", { data: ids }, true)
+                            .done(function (res) {
+                                okUtils.tableSuccessMsg(res.message);
+                                tableInit.reload();
+                            });
+                    });
+                    break;
+            }
+        });
+
+        // 行工具栏事件
+        table.on("tool(tableFilter)", function (obj) {
+            let data = obj.data;
+            switch (obj.event) {
+                case "btn-edit":
+                    okLayer.open("编辑角色", `/api/SysRole/Form?id=${data.id}`, "60%", "50%", null, null);
+                    break;
+                case "btn-permission":
+                    okLayer.open("权限分配", `/api/SysRoleMenu/Permission?roleId=${data.id}`, "80%", "80%", null, null);
+                    break;
+            }
+        });
+
+        // 搜索表单提交
+        form.on("submit(search)", function (data) {
+            tableInit.reload({
+                where: data.field,
+                page: { curr: 1 }
+            });
+            return false;
+        });
+    });
+</script>
+
+<!-- 头工具栏模板 -->
+<script type="text/html" id="toolbarTpl">
+    <button class="layui-btn layui-btn-xs layui-btn-normal" lay-event="btn-add">新增</button>
+    <button class="layui-btn layui-btn-xs layui-btn-danger" lay-event="btn-batchDel">批量删除</button>
+</script>
+
+<!-- 行工具栏模板 -->
+<script type="text/html" id="toolTpl">
+    <button class="layui-btn layui-btn-xs layui-btn-normal" lay-event="btn-edit">编辑</button>
+    <button class="layui-btn layui-btn-xs layui-btn-primary" lay-event="btn-permission">权限分配</button>
+</script>

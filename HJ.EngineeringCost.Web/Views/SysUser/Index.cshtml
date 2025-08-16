@@ -1,0 +1,117 @@
+﻿@{
+    ViewBag.Title = "用户管理";
+    Layout = "~/Views/Shared/_LayoutList.cshtml";
+}
+<!--搜索区域-->
+<div class="layui-row">
+    <form class="layui-form layui-col-md12 ok-search">
+        <div class="layui-input-inline">
+            <input class="layui-input" name="UserName" placeholder="请输入用户名" autocomplete="off">
+        </div>
+        <div class="layui-input-inline">
+            <input class="layui-input" name="RealName" placeholder="请输入真实姓名" autocomplete="off">
+        </div>
+        <div class="layui-input-inline">
+            <select name="UserStatus" lay-search>
+                <option value="">请选择状态</option>
+                <option value="1">启用</option>
+                <option value="2">禁用</option>
+            </select>
+        </div>
+        <button class="layui-btn layui-btn-sm layui-btn-normal btn-search" lay-submit lay-filter="search">
+            <i class='layui-icon'>&#xe615;</i>查询
+        </button>
+        <button class="layui-btn layui-btn-sm layui-btn-primary" id="resetSearch">重置</button>
+    </form>
+</div>
+<!--数据表格-->
+<table class="layui-hide" id="tableId" lay-filter="tableFilter"></table>
+<script type="text/javascript">
+    layui.use(["table", "form", "okLayer", "okUtils"], function () {
+        let table = layui.table;
+        let form = layui.form;
+        let okLayer = layui.okLayer;
+        let okUtils = layui.okUtils;
+
+        let tableInit = table.render({
+            elem: "#tableId",
+            url: "/api/SysUser",
+            limit: 10,
+            height: "full-" + searchHeight(),
+            page: true,
+            toolbar: "#toolbarTpl",
+            defaultToolbar: ["filter", "exports"],
+            size: "xs",
+            cols: [[
+                { type: "checkbox" },
+                { title: "操作", align: "center", templet: "#toolTpl", width: 65 },
+                { field: "userName", title: "用户名", sort: true },
+                { field: "nickName", title: "昵称", sort: true },
+                { field: "realName", title: "真实姓名", sort: true },
+                { field: "email", title: "邮箱", sort: true },
+                { field: "userStatus", title: "状态", sort: true },
+                { field: "phone", title: "手机号", sort: true },
+                { field: "roleName", title: "用户角色", sort: true }
+            ]],
+            where: $("form").serializeObject(),
+            request: {
+                pageName: "PageIndex",
+                limitName: "PageSize"
+            }
+        });
+
+        table.on("toolbar(tableFilter)", function (obj) {
+            switch (obj.event) {
+                case "btn-add":
+                    okLayer.open("新增用户", "/api/SysUser/Form", "80%", "80%", null, null);
+                    break;
+
+                case "btn-batchDel":
+                    var idArray = [];
+                    $(table.checkStatus(obj.config.id).data).each(function (index, item) {
+                        idArray.push(item.id);
+                    });
+                    if (idArray.length === 0) {
+                        return okLayer.yellowSighMsg("请选择要删除的数据");
+                    }
+
+                    const requestData = { data: idArray };
+
+                    okLayer.confirm("确定要删除吗？", function () {
+                        okUtils.ajax("/api/SysUser/Delete", "post", requestData, true).done(function (res) {
+                            okUtils.tableSuccessMsg(res.message);
+                        }).fail(function (error) {
+                            console.log(error);
+                        });
+                    });
+                    break;
+            }
+        });
+
+        table.on("tool(tableFilter)", function (obj) {
+            let data = obj.data;
+            switch (obj.event) {
+                case "btn-edit":
+                    okLayer.open("编辑用户", "/api/SysUser/Form?id=" + data.id, "80%", "80%", null, null);
+                    break;
+            }
+        });
+
+        form.on("submit(search)", function (data) {
+            tableInit.reload({
+                where: data.field,
+                page: { curr: 1 }
+            });
+            return false;
+        });
+    });
+</script>
+<!-- 头工具栏模板 -->
+<script type="text/html" id="toolbarTpl">
+    <button class="layui-btn layui-btn-xs layui-btn-normal" lay-event="btn-add">新增</button>
+    <button class="layui-btn layui-btn-xs layui-btn-normal" lay-event="btn-batchDel">批量删除</button>
+</script>
+<!-- 行工具栏模板 -->
+<script type="text/html" id="toolTpl">
+    <button class="layui-btn layui-btn-xs layui-btn-normal" lay-event="btn-edit">编辑</button>
+</script>

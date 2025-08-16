@@ -1,0 +1,99 @@
+﻿@{
+    ViewBag.Title = "角色权限分配";
+    Layout = "~/Views/Shared/_LayoutForm.cshtml";
+    var roleId = ViewBag.RoleId;
+}
+
+<div class="layui-form ok-form">
+    <input type="hidden" id="roleId" value="@roleId" />
+
+    <div class="layui-form-item">
+        <div class="pl-form-line">
+            <label class="layui-form-label">菜单权限</label>
+            <div class="pl-form-input-block" style="padding-left: 15px;">
+                <div class="layui-tree" id="menuTree"></div>
+            </div>
+        </div>
+    </div>
+
+    <div class="fixed-buttons">
+        <button class="layui-btn layui-btn-sm layui-btn-normal" id="savePermission">保存权限</button>
+        <button type="button" class="layui-btn layui-btn-sm layui-btn-primary" id="close">取消</button>
+    </div>
+</div>
+
+<script type="text/javascript">
+    layui.use(["tree", "okLayer", "okUtils"], function () {
+        let tree = layui.tree;
+        let okLayer = layui.okLayer;
+        let okUtils = layui.okUtils;
+        let roleId = $("#roleId").val();
+        let treeIns;
+
+        // 加载菜单树和已选权限
+        function loadMenuTree() {
+            // 1. 先获取所有菜单
+            okUtils.ajax("/api/SysMenu/GetTreeList", "get", {}, false)
+                .done(function (menuRes) {
+                    if (menuRes.Code !== 0 || !menuRes.Data) return;
+
+                    // 2. 获取角色已分配的菜单ID
+                    okUtils.ajax(`/api/SysRoleMenu/GetRoleMenuIds?roleId=${roleId}`, "get", {}, false)
+                        .done(function (checkedRes) {
+                            if (checkedRes.Code !== 0) return;
+
+                            // 转换菜单数据为树形结构
+                            let treeData = menuRes.Data.map(menu => ({
+                                id: menu.id,
+                                title: menu.menuName,
+                                checked: checkedRes.Data.includes(menu.id),
+                                children: menu.children ? menu.children.map(child => ({
+                                    id: child.id,
+                                    title: child.menuName,
+                                    checked: checkedRes.Data.includes(child.id)
+                                })) : []
+                            }));
+
+                            // 渲染树形组件
+                            treeIns = tree.render({
+                                elem: "#menuTree",
+                                data: treeData,
+                                showCheckbox: true,
+                                id: "menuTreeId",
+                                isJump: false,
+                                click: function (obj) {
+                                    // 点击节点时自动勾选/取消勾选
+                                    treeIns.checkNode(obj.data.id, !obj.checked);
+                                }
+                            });
+                        });
+                });
+        }
+
+        // 保存权限
+        $("#savePermission").click(function () {
+            // 获取所有勾选的节点ID
+            let checkedData = tree.getChecked("menuTreeId");
+            let menuIds = checkedData.map(item => item.id);
+
+            okUtils.ajax("/api/SysRoleMenu/SaveRoleMenus", "post", {
+                roleId: roleId,
+                menuIds: menuIds
+            }, true).done(function (res) {
+                okLayer.greenTickMsg("权限分配成功", function () {
+                    parent.layer.closeAll();
+                });
+            }).fail(function (error) {
+                okLayer.redSighMsg(error.responseJSON.message || "权限分配失败");
+            });
+        });
+
+        // 取消按钮
+        $("#close").click(function () {
+            parent.layer.closeAll();
+        });
+
+        // 初始化加载
+        loadMenuTree();
+    });
+</script>
