@@ -5,8 +5,8 @@ namespace HJ.EngineeringCost.Web.Models;
 /// <summary>
 /// 角色权限关联表
 /// </summary>
-[Table(Name = "sys_role_permission")]
-public class SysRolePermission : EntityBase
+[Table(Name = "sys_role_menu")]
+public class SysRoleMenu : EntityBase
 {
     /// <summary>
     /// 角色ID
@@ -15,8 +15,8 @@ public class SysRolePermission : EntityBase
     public long RoleId { get; set; }
 
     /// <summary>
-    /// 权限ID
+    /// 菜单ID
     /// </summary>
     [Column(IsPrimary = true)]
-    public long PermissionId { get; set; }
+    public long MenuId { get; set; }
 }

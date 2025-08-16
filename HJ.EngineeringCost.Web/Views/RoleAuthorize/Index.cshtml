@@ -1,0 +1,173 @@
+﻿@{ var id = Request.QueryString["id"];
+	Layout = "~/Views/Shared/_LayoutList.cshtml"; }
+<style type="text/css">
+	.div-collapse {float: left;height: 18px;line-height: 18px;padding: 5px 0 0 5px;}
+	.layui-table-cell .layui-form-checkbox[lay-skin=primary] {top: -1px;padding-left: 25px; /* 覆盖layui padding */}
+</style>
+<!--数据表格-->
+<table class="layui-hide" id="tableId" lay-filter="tableFilter"></table>
+<script type="text/javascript">
+
+    layui.use(["treeGrid", "form", "okUtils"], function () {
+        let treeGrid = layui.treeGrid;
+        let form = layui.form;
+        let okUtils = layui.okUtils;
+
+        treeGrid.render({
+            elem: "#tableId",
+            url: "/System/Menu/MenuButtonList?id=@id",
+            page: false,
+            toolbar: "#toolbarTpl",
+            size: "xs",
+            cellMinWidth: 100,
+            treeId: 'Id',   //树形id字段名称
+            treeUpId: 'MenuParentId',   //树形父id字段名称
+            treeShowName: 'MenuName',   //以树形式显示的字段
+            cols: [[
+                { title: "操作", width: 120, align: "center", templet: "#toolTpl" },
+                { field: "MenuName", title: "菜单名称", width: 200, type: 'checkbox_txt' },
+                { field: "MenuButtonHtml", title: "按钮权限" }
+			]],
+			done: function (res) {
+				//父级菜单不分配按钮权限
+				$(".div-collapse.root").parents("td").next().html("");
+			}
+        });
+
+        //折叠展开
+		$("#btnFold").on('click', function () {
+            $(".div-collapse.root .layui-tree-head").click();
+        });
+
+        //保存设置
+        $("#btnSave").on('click', function () {
+            var roleId = '@id';
+			var menuNameList = $(".layui-table").find('.div-collapse.root');
+            var menuButtonList = $(".layui-table").find('td[data-field="MenuButtonHtml"]');
+
+			var list = [];
+
+			menuNameList.each(function (index, item) {
+				var rowJson = { RoleId: "", MenuId: "", MultiButtonId: "" };
+				var pitem = $(this).find('input[type="checkbox"]');
+				pitem.each(function (index, mItem) {
+					if (mItem.checked) {
+						var _name = mItem.name;//chx_2
+						if (_name.indexOf('cbx_') > -1) {
+							_name = _name.replace('cbx_', '');
+						} else {
+							_name = mItem.getAttribute('tag');
+							if (_name.indexOf('cbx_') > -1) {
+								_name = _name.replace('cbx_', '');
+							}
+						}
+						rowJson.RoleId = roleId;
+						rowJson.MenuId = _name;
+						rowJson.MultiButtonId = "";
+					}
+				});
+				if (rowJson.RoleId != "" && rowJson.MenuId != "") {
+					list.push(rowJson);
+				}
+			});
+
+			menuButtonList.each(function (index, item) {
+                var rowJson = { RoleId: "", MenuId: "", MultiButtonId: "" };
+                var pitem = $(this).find('input[type="checkbox"]');
+                pitem.each(function (index, mItem) {
+                    if (mItem.checked) {
+                        var _name = mItem.name;//chx_2
+                        if (_name.indexOf('cbx_') > -1) {
+                            _name = _name.replace('cbx_', '');
+                        } else {
+                            _name = mItem.getAttribute('tag');
+                            if (_name.indexOf('cbx_') > -1) {
+                                _name = _name.replace('cbx_', '');
+                            }
+                        }
+                        rowJson.RoleId = roleId;
+						rowJson.MenuId = _name;
+						rowJson.MultiButtonId += mItem.value == "on" ? "" : mItem.value + "|";
+                    }
+				});
+				if (rowJson.MultiButtonId != "") {
+					rowJson.MultiButtonId = rowJson.MultiButtonId.substring(0, rowJson.MultiButtonId.length - 1);
+				}
+				if (rowJson.RoleId != "" && rowJson.MenuId != "") {
+					list.push(rowJson);
+				}
+			});
+
+            okUtils.ajax("/System/RoleAuthorize/InsertBatch", "post", { "list": list, "roleId": roleId }, true).done(function (res) {
+                okUtils.tableSuccessMsg(res.Msg);
+                setTimeout(CloseWin, 1500);
+            }).fail(function (error) {
+                console.log(error);
+            });
+		});
+
+        treeGrid.on("tool(tableFilter)", function (obj) {
+			let data = obj.data;
+			let isChecked = obj.event === 'selectAll' ? true : false;
+			$("input[name='cbx_" + data.Id + "']").prop("checked", isChecked);
+            form.render('checkbox');
+		});
+
+		//一级菜单选择 二级菜单选中
+		$("body").on("click", '.div-collapse.root .layui-unselect.layui-form-checkbox', function () {
+			var pItem = $(this).parent();
+			var isChecked = pItem.find("input[type='checkbox']").prop("checked");
+			var pid = pItem.find("input[type='checkbox']").attr("tag").replace('cbx_', '');
+			$(this).parents("tr").siblings().each(function (index, item) {
+				var cbxItem = $(this);
+				if (cbxItem.attr("upids") === "_" + pid + "_") {
+					cbxItem.find("input[type='checkbox']").prop("checked", isChecked);
+				}
+			});
+			form.render('checkbox');
+		});
+
+		//二级菜单选择
+		$("body").on("click", '.div-collapse.second .layui-unselect.layui-form-checkbox', function () {
+			var pItem = $(this).parent();
+			var isChecked = pItem.find("input[type='checkbox']").prop("checked");
+			//一级菜单选择
+			if (isChecked) {
+				var upid = $(this).parents("tr").attr("upids");
+				$(".div-collapse.root." + upid).find("input[type='checkbox']").prop("checked", true);
+			}
+			//按钮权限选择
+			var tag = pItem.find("input[type='checkbox']").attr("tag");
+			$("input[name='" + tag + "']").prop("checked", isChecked);
+			form.render('checkbox');
+		});
+
+		//按钮权限选择
+		$("body").on("click", '.layui-table-cell.laytable-cell-1-MenuButtonHtml .layui-unselect.layui-form-checkbox', function () {
+			//一级菜单选择
+			var upid = $(this).parents("tr").attr("upids");
+			$(".div-collapse.root." + upid).find("input[type='checkbox']").prop("checked", true);
+			//二级菜单选择
+			$(this).parents("td").prev().find("input[type='checkbox']").prop("checked", true);
+			form.render('checkbox');
+		});
+    });
+
+    //关闭页面
+    function CloseWin() {
+        parent.location.reload(); // 父页面刷新
+        parent.layer.close(parent.layer.getFrameIndex(window.name));//先得到当前iframe层的索引 再执行关闭
+    }
+</script>
+<!-- 头工具栏模板 -->
+<script type="text/html" id="toolbarTpl">
+	<button class='layui-btn layui-btn-sm' id='btnFold'>全部折叠/展开</button>
+	<button class='layui-btn layui-btn-sm' id='btnSave'>保存设置</button>
+</script>
+<!-- 行工具栏模板 -->
+<script type="text/html" id="toolTpl">
+	{{# if(d.MenuButtonHtml!=""){}}
+	<a class="layui-btn layui-btn-normal layui-btn-xs" lay-event="selectAll">全选</a>
+	<a class="layui-btn layui-btn-normal layui-btn-xs" lay-event="unSelectAll">全不选</a>
+	{{# } }}
+</script>

@@ -66,17 +66,18 @@ public class AccountController : Controller
                 .Where(r => r.Id == user.RoleId)
                 .FirstAsync();
 
-            var permissions = await _fsql.Select<SysPermission, SysRolePermission>()
-                .InnerJoin<SysRolePermission>((p, rp) => p.Id == rp.PermissionId)
-                .Where((p, rp) => rp.RoleId == user.RoleId)
-                .ToListAsync();
+            var menuIdList = await _fsql.Select<SysMenu, SysRoleMenu>()
+                .InnerJoin<SysRoleMenu>((m, rm) => m.Id == rm.MenuId)
+                .Where((m, rm) => rm.RoleId == user.RoleId)
+                .ToListAsync((m, rm) => m.Id);
 
             var claims = new List<Claim>
             {
                 new Claim(ClaimTypes.NameIdentifier, user.Id.ToString()),
                 new Claim(ClaimTypes.Name, user.UserName),
                 new Claim("RealName", user.RealName),
-                new Claim(ClaimTypes.Role, role?.RoleName ?? "")
+                new Claim(ClaimTypes.Role, role?.RoleName ?? ""),
+                new Claim("MenuIdList", string.Join(",", menuIdList))
             };
 
             var claimsIdentity = new ClaimsIdentity(
@@ -150,4 +151,46 @@ public class AccountController : Controller
 
         return Json(new { Code = 200, Data = userInfo });
     }
+
+    //[HttpGet]
+    //public async Task<IActionResult> GetUserMenus()
+    //{
+    //    if (!User.Identity.IsAuthenticated)
+    //    {
+    //        return Json(new { Code = 401, Message = "未登录" });
+    //    }
+
+    //    // 获取当前用户角色ID
+    //    var userId = long.Parse(User.FindFirstValue(ClaimTypes.NameIdentifier));
+    //    var user = await _fsql.Select<SysUser>()
+    //        .Where(x => x.Id == userId)
+    //        .FirstAsync();
+
+    //    if (user == null)
+    //    {
+    //        return Json(new { Code = 404, Message = "用户不存在" });
+    //    }
+
+    //    // 获取角色关联的菜单
+    //    var menuIds = await _fsql.Select<SysRoleMenu>()
+    //        .Where(x => x.RoleId == user.RoleId)
+    //        .ToListAsync(x => x.MenuId);
+
+    //    if (!menuIds.Any())
+    //    {
+    //        return Json(new { Code = 0, Data = new List<SysMenuDto>() });
+    //    }
+
+    //    // 获取菜单列表并构建树形结构
+    //    var menus = await _fsql.Select<SysMenu>()
+    //        .Where(x => menuIds.Contains(x.Id) && x.IsShow)
+    //        .OrderBy(x => x.ParentId)
+    //        .OrderBy(x => x.Sort)
+    //        .ToListAsync();
+
+    //    var menuDtos = menus.Adapt<List<SysMenuDto>>();
+    //    //var treeMenus = BuildMenuTree(menuDtos, 0);
+
+    //    return Json(new { Code = 0, Data = treeMenus });
+    //}
 }

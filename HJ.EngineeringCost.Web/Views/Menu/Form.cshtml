@@ -1,0 +1,145 @@
+﻿@model HJ.EngineeringCost.Web.Models.SysMenu
+@{
+    Layout = "~/Views/Shared/_LayoutForm.cshtml";
+    var url = Model?.Id == null ? "/api/SysMenu/Create" : "/api/SysMenu/Update";
+}
+<style>
+    .sltIcon {
+        position: absolute;
+        right: 20px;
+        float: right;
+        top: 1px;
+        background: #f2f2f2;
+        height: 36px;
+        padding: 0 5px 0 5px;
+        line-height: 36px;
+        border-radius: 1px;
+        cursor: pointer;
+    }
+</style>
+<form class="layui-form layui-form-pane ok-form" lay-filter="formSave">
+    <input type="hidden" name="Id" value="@Model?.Id" />
+
+    <div class="layui-form-item">
+        <div class="pl-form-line">
+            <label class="layui-form-label xrequired">菜单名称</label>
+            <div class="pl-form-input-block">
+                <input name="MenuName"
+                       value="@Model?.MenuName"
+                       class="layui-input"
+                       type="text"
+                       placeholder="请输入菜单名称"
+                       autocomplete="off"
+                       lay-verify="required" />
+            </div>
+        </div>
+
+        <div class="pl-form-line">
+            <label class="layui-form-label">菜单地址</label>
+            <div class="pl-form-input-block">
+                <input name="Path"
+                       value="@Model?.Path"
+                       class="layui-input"
+                       type="text"
+                       placeholder="请输入菜单地址"
+                       autocomplete="off" />
+            </div>
+        </div>
+
+        <div class="pl-form-line">
+            <label class="layui-form-label">父级菜单ID</label>
+            <div class="pl-form-input-block">
+                <input type="text"
+                       id="ParentId"
+                       name="ParentId"
+                       class="layui-input"
+                       value="@Model?.ParentId"
+                       lay-filter="menuTree" />
+            </div>
+        </div>
+
+        <div class="pl-form-line">
+            <label class="layui-form-label xrequired">菜单图标</label>
+            <div class="pl-form-input-block">
+                <input type="text"
+                       id="showIcon"
+                       name="showIcon"
+                       class="layui-input icon ok-icon"
+                       value="@Html.Raw(Model?.Icon)"
+                       readonly>
+                <input type="hidden"
+                       name="Icon"
+                       value="@Model?.Icon" />
+                <span class="sltIcon">选择图标</span>
+            </div>
+        </div>
+
+        <div class="pl-form-line">
+            <label class="layui-form-label">排序号</label>
+            <div class="pl-form-input-block">
+                <input name="Sort"
+                       value="@Model?.Sort"
+                       class="layui-input"
+                       type="number"
+                       placeholder="请输入排序号"
+                       autocomplete="off" />
+            </div>
+        </div>
+
+        <div class="pl-form-line">
+            <label class="layui-form-label">是否显示</label>
+            <div class="pl-form-input-block">
+                <input type="checkbox"
+                       name="IsShow"
+                       lay-skin="switch"
+                       lay-text="是|否"
+                @(Model?.IsShow == true ? "checked" : "")>
+            </div>
+        </div>
+    </div>
+
+    <div class="fixed-buttons">
+        <button class="layui-btn layui-btn-sm layui-btn-normal" lay-submit lay-filter="save">保存</button>
+        <button type="button" class="layui-btn layui-btn-sm layui-btn-primary" id="close">取消</button>
+    </div>
+</form>
+<script type="text/javascript">
+    layui.use(["form", "treeSelect", "okLayer", "okUtils"], function () {
+        let treeSelect = layui.treeSelect;
+        let form = layui.form;
+        let okLayer = layui.okLayer;
+        let okUtils = layui.okUtils;
+
+        // 渲染父级菜单树形选择器
+        treeSelect.render({
+            elem: "#ParentId",
+            data: "/System/Menu/GetMenuTreeSelect?id=@Model?.Id",
+            type: "get",
+            success: function (d) {
+                treeSelect.checkNode('menuTree', "@Model?.ParentId");
+                treeSelect.refresh('menuTree');
+            }
+        });
+
+        // 保存表单
+        form.on("submit(save)", function (data) {
+            const requestData = {
+                data: [data.field]
+            };
+
+            okUtils.ajax("@url", "post", requestData, true).done(function (res) {
+                okLayer.greenTickMsg(res.message, function () {
+                    CloseWin();
+                });
+            }).fail(function (error) {
+                console.log(error);
+            });
+            return false;
+        });
+
+        // 选择图标
+        $("body").on("click", ".sltIcon", function () {
+            okLayer.open("选择图标", "/lib/fonts/Icon.html", "100%", "100%", null, null);
+        });
+    });
+</script>

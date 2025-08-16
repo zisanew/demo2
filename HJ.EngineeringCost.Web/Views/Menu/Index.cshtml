@@ -1,0 +1,79 @@
+﻿@{
+    ViewBag.Title = "Index";
+    Layout = "~/Views/Shared/_LayoutList.cshtml";
+}
+<style type="text/css">
+    .div-collapse {
+        float: left;
+        height: 20px;
+        line-height: 20px;
+        padding-left: 5px;
+    }
+</style>
+
+<!--数据表格-->
+<table class="layui-hide" id="tableId" lay-filter="tableFilter"></table>
+
+<script type="text/javascript">
+
+    layui.use(["treeGrid", "okLayer", "okUtils"], function () {
+        let treeGrid = layui.treeGrid;
+        let okLayer = layui.okLayer;
+        let okUtils = layui.okUtils;
+
+        treeGrid.render({
+            elem: "#tableId",
+            url: "/api/SysMenu/GetList",
+            page: false,
+            toolbar: "#toolbarTpl",
+            size: "xs",
+            cellMinWidth: 120, //全局定义常规单元格的最小宽度
+            treeId: 'Id',   //树形id字段名称
+            treeUpId: 'MenuParentId',   //树形父id字段名称
+            treeShowName: 'MenuName',   //以树形式显示的字段
+            cols: [[
+                { title: "操作", align: "center", templet: "#toolTpl" },
+                { field: "MenuName", title: "菜单名称" },
+                { field: "Path", title: "菜单路径" },
+                { field: "Icon", title: "菜单图标", templet: "<span>{{showIcon(d.Icon)}}</span>" },
+                { field: "Sort", title: "排序", sort: true }
+            ]]
+        });
+
+        treeGrid.on("tool(tableFilter)", function (obj) {
+            let data = obj.data;
+            switch (obj.event) {
+                case "btn-edit":
+                    okLayer.open("编辑菜单", "/api/SysMenu/Form?id=" + data.Id, "100%", "100%", null, null);
+                    break;
+                case "btn-del":
+                    okLayer.confirm("确定要删除吗？", function () {
+                        okUtils.ajax("/api/SysMenu/Delete", "post", { id: data.Id }, true).done(function (res) {
+                            okUtils.tableSuccessMsg(res.Msg);
+                            //没开启分页，没确定按钮，手动刷新
+                            setTimeout(function () {
+                                window.location.reload();
+                            }, 1500);
+                        }).fail(function (error) {
+                            console.log(error);
+                        });
+                    });
+                    break;
+            }
+        });
+
+        $("body").on("click", "#btn-add", function () {
+            okLayer.open("添加菜单", "/api/SysMenu/Form", "100%", "100%", null, null);
+        });
+    });
+</script>
+<!-- 头工具栏模板 -->
+<script type="text/html" id="toolbarTpl">
+    <button class="layui-btn layui-btn-xs layui-btn-normal" lay-event="btn-add">新增</button>
+    @* <button class="layui-btn layui-btn-xs layui-btn-normal" lay-event="btn-batchDel">批量删除</button> *@
+</script>
+<!-- 行工具栏模板 -->
+<script type="text/html" id="toolTpl">
+    <button class="layui-btn layui-btn-xs layui-btn-normal" lay-event="btn-edit">编辑</button>
+    <button class="layui-btn layui-btn-xs layui-btn-normal" lay-event="btn-del">删除</button>
+</script>

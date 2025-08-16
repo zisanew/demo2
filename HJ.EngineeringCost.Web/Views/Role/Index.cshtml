@@ -1,0 +1,107 @@
+﻿@{ ViewBag.Title = "Index";
+	Layout = "~/Views/Shared/_LayoutList.cshtml"; }
+<!--搜索区域-->
+<div class="layui-row">
+	<form class="layui-form layui-col-md12 ok-search">
+		<div class="layui-input-inline">
+			<input class="layui-input" name="roleName" placeholder="请输入角色名称" autocomplete="off">
+		</div>
+		@Html.SearchBtnHtml("查询")
+		@Html.ResetBtnHtml()
+	</form>
+</div>
+<!--数据表格-->
+<table class="layui-hide" id="tableId" lay-filter="tableFilter"></table>
+<script type="text/javascript">
+	layui.use(["table", "form", "okLayer", "okUtils"], function () {
+		let table = layui.table;
+		let form = layui.form;
+		let okLayer = layui.okLayer;
+		let okUtils = layui.okUtils;
+
+		let tableInit = table.render({
+			elem: "#tableId",
+			url: "/System/Role/GetPageList",
+			limit: 10,
+			height: 'full-' + searchHeight(),
+			page: true,
+			toolbar: "#toolbarTpl",
+			defaultToolbar: [], //自定义头部工具栏右侧图标。如无需自定义，去除该参数即可
+			size: "xs",
+			cols: [[
+				{ type: "checkbox" },
+				{ title: "操作", align: "center", templet: "#toolTpl" },
+				{ field: "Id", title: "ID", width: 80 },
+				{ field: "RoleName", title: "角色名称", sort: true },
+				{ field: "RoleType", title: "角色类型", templet: "#templetRoleType", sort: true },
+				{ field: "Sort", title: "排序", sort: true },
+				{ field: "Remark", title: "备注" },
+				{ field: "IsUse", title: "是否启用", templet: "#templetIsUse" }
+			]]
+		});
+
+		form.on("submit(search)", function (data) {
+			tableInit.reload({
+				where: data.field,
+				page: { curr: 1 }
+			});
+			return false;
+		});
+
+		table.on("toolbar(tableFilter)", function (obj) {
+			switch (obj.event) {
+				case "btn-add":
+					okLayer.open("添加角色", "/System/Role/Form", "80%", "80%", null, null);
+					break;
+				case "btn-batchDel":
+					var idStr = "";
+					$(table.checkStatus(obj.config.id).data).each(function (index, item) {
+						idStr += item.Id + ",";
+					});
+					if (idStr.trim() == "") {
+						return okLayer.yellowSighMsg("请选择要删除的数据", null, 1500);
+					}
+					doDelete(okLayer, okUtils, "/System/Role/Delete", "post", { id: idStr });
+					break;
+			}
+		});
+
+		table.on("tool(tableFilter)", function (obj) {
+			let data = obj.data;
+			switch (obj.event) {
+				case "btn-edit":
+					okLayer.open("编辑角色", "/System/Role/Form?id=" + data.Id, "80%", "80%", null, null);
+					break;
+				case "btn-del":
+					doDelete(okLayer, okUtils, "/System/Role/Delete", "post", { id: data.Id });
+					break;
+				case "btn-assign":
+					okLayer.open("分配权限", "/System/RoleAuthorize/Index?id=" + data.Id, "100%", "100%", null, null);
+					break;
+			}
+		});
+	});
+</script>
+<!-- 头工具栏模板 -->
+<script type="text/html" id="toolbarTpl">
+	@Html.TopToolBarHtml(ViewData["TopButtonList"])
+</script>
+<!-- 行工具栏模板 -->
+<script type="text/html" id="toolTpl">
+	<a class="layui-btn layui-btn-xs" href="javascript:;" lay-event="btn-assign" id="btn-assign">分配权限</a>
+	@Html.LeftToolBarHtml(ViewData["LeftButtonList"])
+</script>
+<script type="text/html" id="templetRoleType">
+	{{#  if(d.RoleType == 1){  }}
+	管理员
+	{{# }else if(d.RoleType == 2){  }}
+	普通用户
+	{{# } }}
+</script>
+<script type="text/html" id="templetIsUse">
+	{{# if(d.IsUse == 1){ }}
+	<span class='layui-btn layui-btn-normal layui-btn-xs'>已启用</span>
+	{{# }else { }}
+	<span class='layui-btn layui-btn-warm layui-btn-xs'>已停用</span>
+	{{# } }}
+</script>
