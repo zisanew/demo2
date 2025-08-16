@@ -30,7 +30,7 @@ public class GetProjectMaterialInput
 
 public class ProjectDto : Project
 {
-    public List<ProjectMaterial> ProjectMaterialList { get; set; }
+    public List<ProjectMaterial> ProjectMaterialList { get; set; } = new List<ProjectMaterial>();
 }
 
 public class ProjectResult

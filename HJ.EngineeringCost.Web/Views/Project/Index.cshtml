@@ -6,7 +6,7 @@
 <div class="layui-row">
     <form class="layui-form layui-col-md12 ok-search">
         <div class="layui-input-inline">
-            <select name="厂区" lay-search>
+            <select name="Factory" lay-search>
                 <option value="">请选择厂区</option>
                 <option value="MP">MP</option>
                 <option value="EE">EE</option>
@@ -91,13 +91,14 @@
         table.on("toolbar(tableFilter)", function (obj) {
             switch (obj.event) {
                 case "btn-add":
-                    okLayer.open("新增项目", "/api/Project/Form", "80%", "80%", null, null);
+                    okLayer.open("新增项目", "/api/Project/Form", "100%", "100%", null, null);
                     break;
 
                 case "btn-copy":
                     break;
 
                 case "btn-exportExcel":
+                    okUtils.downloadFile("/api/Project/Export", "post", $("form").serializeObject(), true);
                     break;
 
                 case "btn-batchDel":
@@ -126,7 +127,7 @@
             let data = obj.data;
             switch (obj.event) {
                 case "btn-edit":
-                    okLayer.open("编辑项目", "/api/Project/Form?id=" + data.id, "80%", "80%", null, null);
+                    okLayer.open("编辑项目", "/api/Project/Form?id=" + data.id, "100%", "100%", null, null);
                     break;
 
                 case "btn-exportExcelDetail":

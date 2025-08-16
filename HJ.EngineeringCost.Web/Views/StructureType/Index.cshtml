@@ -35,7 +35,7 @@
             cols: [[
                 { type: "checkbox" },
                 { title: "操作", align: "center", templet: "#toolTpl", width: 65 },
-                { field: "typeName", title: "类型名称", sort: true }
+                { field: "typeName", title: "类型名称", edit: 'text', sort: true }
             ]],
             where: $("form").serializeObject(),
             request: {
@@ -76,7 +76,15 @@
             let data = obj.data;
             switch (obj.event) {
                 case "btn-edit":
-                    okLayer.open("编辑结构类型", "/api/StructureType/Form?id=" + data.id, "50%", "50%", null, null);
+                    // okLayer.open("编辑结构类型", "/api/StructureType/Form?id=" + data.id, "50%", "50%", null, null);
+
+                    okLayer.confirm("确定要编辑当前记录吗？", function () {
+                        okUtils.ajax("/api/StructureType/Update", "post", { "data": [obj.data] }, true).done(function (res) {
+                            okUtils.tableSuccessMsg(res.message);
+                        }).fail(function (error) {
+                            console.log(error);
+                        });
+                    });
                     break;
             }
         });

@@ -1,7 +1,6 @@
 ﻿using Mapster;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
-using NPOI.SS.UserModel;
 using NPOI.XSSF.UserModel;
 
 namespace HJ.EngineeringCost.Web.Controllers;
@@ -38,8 +37,8 @@ public class ProjectController : BaseController<Project, ProjectDto>
         var list = await _fsql.Select<Project>()
             .WhereIf(input.ProjectName != null, x => x.ProjectName.Contains(input.ProjectName))
             .WhereIf(input.Factory != null, x => x.Factory.Contains(input.Factory))
-            .WhereIf(input.StartDate != null, x => x.CreateTime <= input.StartDate)
-            .WhereIf(input.EndDate != null, x => x.CreateTime >= input.EndDate)
+            .WhereIf(input.StartDate.HasValue && input.StartDate != DateTime.MinValue, x => x.CreateTime <= input.StartDate)
+            .WhereIf(input.EndDate.HasValue && input.EndDate != DateTime.MinValue, x => x.CreateTime >= input.EndDate)
             .OrderBy(!string.IsNullOrEmpty(input.Sort), input.Sort)
             .Count(out var total)
             .Page(input.PageIndex, input.PageSize)
@@ -237,61 +236,61 @@ public class ProjectController : BaseController<Project, ProjectDto>
     }
 
     /// <summary>
-    /// 导出主表数据（根据查询条件）
+    /// 导出主表数据
     /// </summary>
-    [HttpGet]
-    public async Task<IActionResult> ExportMain([FromQuery] GetPageProjectInput input)
+    /// <param name="input"></param>
+    /// <returns></returns>
+    [HttpPost]
+    public async Task<IActionResult> ExportAsync([FromBody] GetPageProjectInput input)
     {
-        // 1. 根据查询条件查询所有数据（不分页）
-        var query = _fsql.Select<Project>()
+        var projectList = await _fsql.Select<Project>()
             .WhereIf(!string.IsNullOrEmpty(input.ProjectName), x => x.ProjectName.Contains(input.ProjectName))
             .WhereIf(!string.IsNullOrEmpty(input.Factory), x => x.Factory.Contains(input.Factory))
-            .WhereIf(input.StartDate.HasValue, x => x.CreateTime <= input.StartDate)
-            .WhereIf(input.EndDate.HasValue, x => x.CreateTime >= input.EndDate);
+            .WhereIf(input.StartDate.HasValue && input.StartDate != DateTime.MinValue, x => x.CreateTime <= input.StartDate)
+            .WhereIf(input.EndDate.HasValue && input.EndDate != DateTime.MinValue, x => x.CreateTime >= input.EndDate)
+            .ToListAsync();
 
-        var projects = await query.ToListAsync();
-
-        // 2. 生成Excel
-        using var stream = new MemoryStream();
-        IWorkbook workbook = new XSSFWorkbook();
-        ISheet sheet = workbook.CreateSheet("项目列表");
-
-        // 表头
-        var headerRow = sheet.CreateRow(0);
-        headerRow.CreateCell(0).SetCellValue("项目ID");
-        headerRow.CreateCell(1).SetCellValue("项目名称");
-        headerRow.CreateCell(2).SetCellValue("项目编号");
-        headerRow.CreateCell(3).SetCellValue("项目类型");
-        headerRow.CreateCell(4).SetCellValue("厂区");
-        headerRow.CreateCell(5).SetCellValue("工程价格");
-        headerRow.CreateCell(6).SetCellValue("创建时间");
-
-        // 数据行
-        for (int i = 0; i < projects.Count; i++)
+        using (var workbook = new XSSFWorkbook())
         {
-            var row = sheet.CreateRow(i + 1);
-            var project = projects[i];
-            row.CreateCell(0).SetCellValue(project.Id);
-            row.CreateCell(1).SetCellValue(project.ProjectName);
-            row.CreateCell(2).SetCellValue(project.ProjectCode);
-            row.CreateCell(3).SetCellValue(project.ProjectType);
-            row.CreateCell(4).SetCellValue(project.Factory);
-            row.CreateCell(5).SetCellValue(project.EngineeringPrice.ToString("F2"));
-            row.CreateCell(6).SetCellValue(project.CreateTime.ToString());
+            var sheet = workbook.CreateSheet("项目列表");
+
+            var headerRow = sheet.CreateRow(0);
+            headerRow.CreateCell(0).SetCellValue("项目ID");
+            headerRow.CreateCell(1).SetCellValue("项目名称");
+            headerRow.CreateCell(2).SetCellValue("项目编号");
+            headerRow.CreateCell(3).SetCellValue("项目类型");
+            headerRow.CreateCell(4).SetCellValue("厂区");
+            headerRow.CreateCell(5).SetCellValue("工程价格");
+            headerRow.CreateCell(6).SetCellValue("创建时间");
+
+            for (int i = 0; i < projectList.Count; i++)
+            {
+                var row = sheet.CreateRow(i + 1);
+                var project = projectList[i];
+                row.CreateCell(0).SetCellValue(project.Id);
+                row.CreateCell(1).SetCellValue(project.ProjectName);
+                row.CreateCell(2).SetCellValue(project.ProjectCode);
+                row.CreateCell(3).SetCellValue(project.ProjectType);
+                row.CreateCell(4).SetCellValue(project.Factory);
+                row.CreateCell(5).SetCellValue(project.EngineeringPrice.ToString("F2"));
+                row.CreateCell(6).SetCellValue(project.CreateTime.ToString());
+            }
+
+            using (var memoryStream = new MemoryStream())
+            {
+                workbook.Write(memoryStream);
+                byte[] bytes = memoryStream.ToArray();
+                return File(bytes, "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+                    $"项目列表_{DateTime.Now:yyyyMMddHHmmss}.xlsx");
+            }
         }
-
-        // 写入流
-        workbook.Write(stream);
-        stream.Position = 0;
-
-        // 3. 返回文件
-        return File(stream, "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
-            $"项目列表_{DateTime.Now:yyyyMMdd}.xlsx");
     }
 
     /// <summary>
-    /// 根据projectId导出材料数据
+    /// 导出明细数据
     /// </summary>
+    /// <param name="projectId"></param>
+    /// <returns></returns>
     [HttpGet]
     public async Task<IActionResult> ExportMaterials(long projectId)
     {
@@ -314,12 +313,9 @@ public class ProjectController : BaseController<Project, ProjectDto>
             return Content("该项目无材料数据");
         }
 
-        // 2. 生成Excel
-        using var stream = new MemoryStream();
-        IWorkbook workbook = new XSSFWorkbook();
-        ISheet sheet = workbook.CreateSheet("项目材料列表");
+        var workbook = new XSSFWorkbook();
+        var sheet = workbook.CreateSheet("项目材料列表");
 
-        // 表头
         var headerRow = sheet.CreateRow(0);
         headerRow.CreateCell(0).SetCellValue("材料ID");
         headerRow.CreateCell(1).SetCellValue("项目ID");
@@ -329,7 +325,6 @@ public class ProjectController : BaseController<Project, ProjectDto>
         headerRow.CreateCell(5).SetCellValue("工资单价");
         headerRow.CreateCell(6).SetCellValue("总价");
 
-        // 数据行
         for (int i = 0; i < materials.Count; i++)
         {
             var row = sheet.CreateRow(i + 1);
@@ -343,12 +338,12 @@ public class ProjectController : BaseController<Project, ProjectDto>
             row.CreateCell(6).SetCellValue(item.TotalPrice.ToString("F2"));
         }
 
-        // 写入流
-        workbook.Write(stream);
-        stream.Position = 0;
-
-        // 3. 返回文件
-        return File(stream, "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
-            $"项目_{projectId}_材料数据_{DateTime.Now:yyyyMMdd}.xlsx");
+        using (var memoryStream = new MemoryStream())
+        {
+            workbook.Write(memoryStream);
+            byte[] bytes = memoryStream.ToArray();
+            return File(bytes, "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+                $"项目_{projectId}_材料数据_{DateTime.Now:yyyyMMdd}.xlsx");
+        }
     }
 }

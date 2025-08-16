@@ -34,8 +34,8 @@ public class IndicesController : BaseController<Indices, IndicesDto>
     {
         var list = await _fsql.Select<Indices>()
             .WhereIf(input.ProjectName != null, x => x.ProjectName.Contains(input.ProjectName))
-            .WhereIf(input.StartDate != null, x => x.CreateTime <= input.StartDate)
-            .WhereIf(input.EndDate != null, x => x.CreateTime >= input.EndDate)
+            .WhereIf(input.StartDate.HasValue && input.StartDate != DateTime.MinValue, x => x.CreateTime <= input.StartDate)
+            .WhereIf(input.EndDate.HasValue && input.EndDate != DateTime.MinValue, x => x.CreateTime >= input.EndDate)
             .OrderBy(!string.IsNullOrEmpty(input.Sort), input.Sort)
             .Count(out var total)
             .Page(input.PageIndex, input.PageSize)

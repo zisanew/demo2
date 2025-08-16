@@ -2,8 +2,11 @@
 @{
     Layout = "~/Views/Shared/_LayoutForm.cshtml";
     var url = Model?.Id == null ? "/api/Project/Create" : "/api/Project/Update";
+    var type = ViewBag.Type;
 }
-<form class="layui-form layui-form-pane ok-form" lay-filter="formSave">
+<button class="layui-btn layui-btn-xs layui-btn-normal" lay-event="btn-exportExcel">下载导入模板</button>
+<button class="layui-btn layui-btn-xs layui-btn-normal" lay-event="btn-copy">导入</button>
+<form class="layui-form layui-form-pane ok-form" style="padding:0px;" lay-filter="formSave">
     <input type="hidden" name="Id" value="@Model?.Id" />
     <div class="layui-form-item">
         <div class="pl-form-line">
@@ -27,19 +30,19 @@
         <div class="pl-form-line">
             <label class="layui-form-label">项目类型</label>
             <div class="pl-form-input-block">
-                <input name="ProjectType" value="@Model?.ProjectType" class="layui-input" type="text" placeholder="请输入项目类型" autocomplete="off" />
+                <select name="ProjectTypeSelect" id="ProjectTypeSelect" lay-search></select>
             </div>
         </div>
         <div class="pl-form-line">
             <label class="layui-form-label">结构类型</label>
             <div class="pl-form-input-block">
-                <input name="StructureType" value="@Model?.StructureType" class="layui-input" type="text" placeholder="请输入结构类型" autocomplete="off" />
+                <select name="StructureTypeSelect" id="StructureTypeSelect" lay-search></select>
             </div>
         </div>
         <div class="pl-form-line">
             <label class="layui-form-label">基础类型</label>
             <div class="pl-form-input-block">
-                <input name="BaseType" value="@Model?.BaseType" class="layui-input" type="text" placeholder="请输入基础类型" autocomplete="off" />
+                <select name="BaseTypeSelect" id="BaseTypeSelect" lay-search></select>
             </div>
         </div>
         <div class="pl-form-line">
@@ -51,7 +54,7 @@
         <div class="pl-form-line">
             <label class="layui-form-label">工程价格</label>
             <div class="pl-form-input-block">
-                <input name="EngineeringPrice" value="@Model?.EngineeringPrice" class="layui-input" type="text" placeholder="请输入工程价格" autocomplete="off" readonly />
+                <input name="EngineeringPrice" value="@(Model?.EngineeringPrice ?? 0)" class="layui-input" type="text" placeholder="请输入工程价格" autocomplete="off" readonly />
             </div>
         </div>
         <div class="pl-form-line">
@@ -84,11 +87,106 @@
         <button type="button" class="layui-btn layui-btn-sm layui-btn-primary" id="close">取消</button>
     </div>
 </form>
+<form class="layui-form layui-form-pane ok-form" style="padding:0px;">
+    <h5>详细信息</h5>
+    <div class="layui-form-item">
+        <div class="pl-form-line">
+            <label class="layui-form-label">厂牌</label>
+            <div class="pl-form-input-block">
+                <select name="MaterialBrandSelect" id="MaterialBrandSelect" lay-search></select>
+            </div>
+        </div>
+        <div class="pl-form-line">
+            <label class="layui-form-label">材料名称</label>
+            <div class="pl-form-input-block">
+                <select name="MaterialNameSelect" id="MaterialNameSelect" lay-search></select>
+            </div>
+        </div>
+        <div class="pl-form-line">
+            <label class="layui-form-label">材料列表</label>
+            <div class="pl-form-input-block">
+                <input name="Factory2" class="layui-input" type="text" placeholder="请输入材料列表" autocomplete="off" />
+            </div>
+        </div>
+        <div class="pl-form-line">
+            <label class="layui-form-label">数量</label>
+            <div class="pl-form-input-block">
+                <input name="Factory" class="layui-input" type="text" placeholder="请输入数量" autocomplete="off" />
+            </div>
+        </div>
+        <div class="pl-form-line">
+            <label class="layui-form-label">材料单价</label>
+            <div class="pl-form-input-block">
+                <input name="Factory" class="layui-input" type="text" placeholder="请输入材料单价" autocomplete="off" />
+            </div>
+        </div>
+        <div class="pl-form-line">
+            <label class="layui-form-label">工资单价</label>
+            <div class="pl-form-input-block">
+                <input name="Factory" class="layui-input" type="text" placeholder="请输入工资单价" autocomplete="off" />
+            </div>
+        </div>
+    </div>
+</form>
+<button class="layui-btn layui-btn-xs layui-btn-normal" lay-event="btn-exportExcel">添加材料</button>
+<table class="layui-hide" id="tableId" lay-filter="tableFilter"></table>
 <script type="text/javascript">
-    layui.use(["form", "okLayer", "okUtils"], function () {
+
+    var mockData = [];//模拟数据
+
+    layui.use(["table", "form", "okLayer", "okUtils"], function () {
+        let table = layui.table;
         let form = layui.form;
         let okLayer = layui.okLayer;
         let okUtils = layui.okUtils;
+
+        LoadBasicData();
+
+        let tableInit = table.render({
+            elem: "#tableId",
+            url: "/api/Project/GetDetailList",
+            page: false,//关闭分页
+            defaultToolbar: [], //自定义头部工具栏右侧图标。如无需自定义，去除该参数即可
+            size: "xs",
+            cols: [[
+                { title: "操作", align: "center", templet: "#toolTpl", width: 65 },
+                { field: "materialCode", title: "材料编码", sort: true },
+                { field: "spec", title: "属性", edit: '@type' != 'detail' ? 'text' : false, sort: true },
+                { field: "materialName", title: "材料名称", edit: '@type' != 'detail' ? 'text' : false, sort: true },
+                { field: "spec", title: "材质", edit: '@type' != 'detail' ? 'text' : false, sort: true },
+                { field: "spec", title: "规格、型号、尺寸", edit: '@type' != 'detail' ? 'text' : false, sort: true, width: 150 },
+                { field: "price", title: "厂牌", edit: '@type' != 'detail' ? 'text' : false, sort: true },
+                { field: "wagesPrice", title: "单位", edit: '@type' != 'detail' ? 'text' : false, sort: true },
+                { field: "wagesPrice", title: "数量", edit: '@type' != 'detail' ? 'text' : false, event: 'setNumber', sort: true },
+                { field: "wagesPrice", title: "材料单价", edit: '@type' != 'detail' ? 'text' : false, event: 'setPrice1', sort: true },
+                { field: "wagesPrice", title: "工资单价", edit: '@type' != 'detail' ? 'text' : false, event: 'setPrice2', sort: true },
+                { field: "wagesPrice", title: "备注", edit: '@type' != 'detail' ? 'text' : false, sort: true }
+            ]],
+            where: { project: "@Model?.Id" },
+            done: function (res, curr, count) {
+                //首次加载填充模拟数据
+                if (mockData.length == 0) {
+                    for (var i = 0; i < res.data.length; i++) {
+                        var dataItem = res.data[i];
+                        mockData.push({
+                            "Id": dataItem["Id"],
+                            "StorageDetailId": dataItem["StorageDetailId"],
+                            "PurchaseNo": dataItem["PurchaseNo"],
+                            "SupplierId": dataItem["SupplierId"],
+                            "SupplierName": dataItem["SupplierName"],
+                            "MaterialsNo": dataItem["MaterialsNo"],
+                            "MaterialsName": dataItem["MaterialsName"],
+                            "Specification": dataItem["Specification"],
+                            "Unit": dataItem["Unit"],
+                            "Number": dataItem["Number"],
+                            "Price": dataItem["Price"],
+                            "Amount": dataItem["Amount"],
+                            "Remark": dataItem["Remark"]
+                        });
+                    }
+                }
+            }
+        });
 
         form.on("submit(save)", function (data) {
             const requestData = {
@@ -102,5 +200,66 @@
             });
             return false;
         });
+
+        function LoadBasicData() {
+            okUtils.ajax("/api/Project/GetBasicData", "get", null, true)
+                .done(function (res) {
+                    if (res.code == 0) {
+                        const data = res.data;
+
+                        // 项目类型
+                        let projectTypeHtml = '<option value="">请选择项目类型</option>';
+                        for (let i = 0; i < data.projectTypeList.length; i++) {
+                            const item = data.projectTypeList[i];
+                            const isSelected = "@Model?.ProjectType" === item ? 'selected' : '';
+                            projectTypeHtml += `<option value="${item}" ${isSelected}>${item}</option>`;
+                        }
+                        $("#ProjectTypeSelect").html(projectTypeHtml);
+
+                        // 结构类型
+                        let structureTypeHtml = '<option value="">请选择结构类型</option>';
+                        for (let i = 0; i < data.structureTypeList.length; i++) {
+                            const item = data.structureTypeList[i];
+                            const isSelected = "@Model?.StructureType"  === item ? 'selected' : '';
+                            structureTypeHtml += `<option value="${item}" ${isSelected}>${item}</option>`;
+                        }
+                        $("#StructureTypeSelect").html(structureTypeHtml);
+
+                        // 基础类型
+                        let baseTypeHtml = '<option value="">请选择基础类型</option>';
+                        for (let i = 0; i < data.baseTypeList.length; i++) {
+                            const item = data.baseTypeList[i];
+                            const isSelected = "@Model?.BaseType" === item ? 'selected' : '';
+                            baseTypeHtml += `<option value="${item}" ${isSelected}>${item}</option>`;
+                        }
+                        $("#BaseTypeSelect").html(baseTypeHtml);
+
+                        // 厂牌
+                        let materialBrandHtml = '<option value="">请选择厂牌</option>';
+                        for (let i = 0; i < data.materialBrandList.length; i++) {
+                            const item = data.materialBrandList[i];
+                            materialBrandHtml += `<option value="${item}">${item}</option>`;
+                        }
+                        $("#MaterialBrandSelect").html(materialBrandHtml);
+
+                        // 材料名称
+                        let materialNameHtml = '<option value="">请选择材料名称</option>';
+                        for (let i = 0; i < data.materialNameList.length; i++) {
+                            const item = data.materialNameList[i];
+                            materialNameHtml += `<option value="${item}">${item}</option>`;
+                        }
+                        $("#MaterialNameSelect").html(materialNameHtml);
+
+                        form.render();
+                    }
+                })
+                .fail(function (error) {
+                    console.error("下拉数据加载失败：", error);
+                });
+        }
     });
+</script>
+<!-- 行工具栏模板 -->
+<script type="text/html" id="toolTpl">
+    <button class="layui-btn layui-btn-xs layui-btn-normal" lay-event="btn-del">删除</button>
 </script>
