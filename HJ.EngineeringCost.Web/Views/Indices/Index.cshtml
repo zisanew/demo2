@@ -1,18 +1,10 @@
 ﻿@{
-    ViewBag.Title = "项目管理";
+    ViewBag.Title = "价格对比";
     Layout = "~/Views/Shared/_LayoutList.cshtml";
 }
 <!--搜索区域-->
 <div class="layui-row">
     <form class="layui-form layui-col-md12 ok-search">
-        <div class="layui-input-inline">
-            <select name="厂区" lay-search>
-                <option value="">请选择厂区</option>
-                <option value="MP">MP</option>
-                <option value="EE">EE</option>
-                <option value="DYF">DYF</option>
-            </select>
-        </div>
         <div class="layui-input-inline">
             <input class="layui-input" name="ProjectName" placeholder="请输入项目名称" autocomplete="off">
         </div>
@@ -58,7 +50,7 @@
 
         let tableInit = table.render({
             elem: "#tableId",
-            url: "/api/Project",
+            url: "/api/Indices",
             limit: 10,
             height: "full-" + searchHeight(),
             page: true,
@@ -67,19 +59,8 @@
             size: "xs",
             cols: [[
                 { type: "checkbox" },
-                { title: "操作", align: "center", templet: "#toolTpl", width: 115 },
-                { field: "factory", title: "厂区", sort: true },
-                { field: "projectName", title: "项目名称", sort: true },
-                { field: "projectCode", title: "项目编号", sort: true },
-                { field: "projectType", title: "项目类型", sort: true },
-                { field: "structureType", title: "结构类型", sort: true },
-                { field: "baseType", title: "基础类型", sort: true },
-                { field: "engineeringStandard", title: "工程标准", sort: true },
-                { field: "engineeringPrice", title: "工程价格", sort: true },
-                { field: "constructionUnit", title: "建设单位", sort: true },
-                { field: "designUnit", title: "设计单位", sort: true },
-                { field: "constructionCompany", title: "施工单位", sort: true },
-                { field: "createTime", title: "编制日期", width: 160, sort: true }
+                { title: "操作", align: "center", templet: "#toolTpl", width: 65 },
+                { field: "projectName", title: "项目名称", sort: true }
             ]],
             where: $("form").serializeObject(),
             request: {
@@ -91,13 +72,7 @@
         table.on("toolbar(tableFilter)", function (obj) {
             switch (obj.event) {
                 case "btn-add":
-                    okLayer.open("新增项目", "/api/Project/Form", "80%", "80%", null, null);
-                    break;
-
-                case "btn-copy":
-                    break;
-
-                case "btn-exportExcel":
+                    okLayer.open("新增价格对比", "/api/Indices/Form", "80%", "80%", null, null);
                     break;
 
                 case "btn-batchDel":
@@ -112,7 +87,7 @@
                     const requestData = { data: idArray };
 
                     okLayer.confirm("确定要删除吗？", function () {
-                        okUtils.ajax("/api/Project/Delete", "post", requestData, true).done(function (res) {
+                        okUtils.ajax("/api/Indices/Delete", "post", requestData, true).done(function (res) {
                             okUtils.tableSuccessMsg(res.message);
                         }).fail(function (error) {
                             console.log(error);
@@ -126,10 +101,7 @@
             let data = obj.data;
             switch (obj.event) {
                 case "btn-edit":
-                    okLayer.open("编辑项目", "/api/Project/Form?id=" + data.id, "80%", "80%", null, null);
-                    break;
-
-                case "btn-exportExcelDetail":
+                    okLayer.open("编辑价格对比", "/api/Indices/Form?id=" + data.id, "80%", "80%", null, null);
                     break;
             }
         });
@@ -146,12 +118,9 @@
 <!-- 头工具栏模板 -->
 <script type="text/html" id="toolbarTpl">
     <button class="layui-btn layui-btn-xs layui-btn-normal" lay-event="btn-add">新增</button>
-    <button class="layui-btn layui-btn-xs layui-btn-normal" lay-event="btn-copy">从项目选择创建</button>
-    <button class="layui-btn layui-btn-xs layui-btn-normal" lay-event="btn-exportExcel">导出</button>
     <button class="layui-btn layui-btn-xs layui-btn-normal" lay-event="btn-batchDel">批量删除</button>
 </script>
 <!-- 行工具栏模板 -->
 <script type="text/html" id="toolTpl">
     <button class="layui-btn layui-btn-xs layui-btn-normal" lay-event="btn-edit">编辑</button>
-    <button class="layui-btn layui-btn-xs layui-btn-normal" lay-event="btn-exportExcelDetail">导出</button>
 </script>
